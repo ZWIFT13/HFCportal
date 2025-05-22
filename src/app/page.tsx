@@ -1,103 +1,171 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import Logo from "@/components/Logo";
+import DashboardNavbar from "@/components/DashboardNavbar";
+import PropertyDetailModal from "@/components/PropertyDetailModal";
+import PropertyGrid from "@/components/DashboardGrid";
+import { Property, PropertyDetail, TransactionType, StatusType } from "@/types/property";
+
+// สร้าง mock data 30 รายการ พร้อม flag isNew และ images
+const statuses: StatusType[] = ["พร้อมขาย", "นัดดู", "กำลังประเมิน", "เสร็จแล้ว"];
+const transactionTypes: TransactionType[] = ["ขายฝาก", "จำนอง"];
+const provinces = ["กรุงเทพฯ", "ปทุมธานี", "นนทบุรี", "สมุทรปราการ"];
+
+const mockData: (Property & { isNew: boolean; images: string[] })[] = Array.from(
+  { length: 30 }, (_, i) => ({
+    id: `PROP${String(i + 1).padStart(3, "0")}`,
+    ownerName: `เจ้าของ PROP${i + 1}`,
+    ownerPhone: `08${Math.floor(10000000 + Math.random() * 90000000)}`,
+    locationLink: `https://goo.gl/maps/${String(i + 1).padStart(3, '0').toLowerCase()}`,
+    province: provinces[i % provinces.length],
+    status: statuses[i % statuses.length],
+    transactionType: transactionTypes[i % transactionTypes.length],
+    isNew: i < 5,
+    images: [`house${(i % 4) + 1}.jpg`],
+  }))
+;
+
+// ข้อมูลรายละเอียดตัวอย่าง (ใช้สำหรับ modal)
+const mockDetail: PropertyDetail = {
+  id: "PROP001",
+  ownerName: "คุณสมศรี",
+  ownerPhone: "089-123-4567",
+  propertyType: "บ้านเดี่ยว",
+  agentName: "พี่นัท",
+  progressStatus: "กำลังประเมิน",
+  investor: "ทุน A",
+  estimatedPrice: 3200000,
+  approvedPrice: 3000000,
+  images: ["house1.jpg", "house2.jpg", "house3.jpg", "house4.jpg"],
+  locationLink: "https://goo.gl/maps/example1",
+  mapEmbedLink: "https://www.google.com/maps/embed?...",
+};
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  // สถานะล็อกอิน
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  // Dashboard states
+  const [searchId, setSearchId] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("ทั้งหมด");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [showDetail, setShowDetail] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 20;
+
+  // Handlers
+  const handleLogin = () => {
+    if (username === "aaa" && password === "Hfc1234") {
+      setLoggedIn(true);
+      setError("");
+    } else {
+      setError("Username หรือ Password ไม่ถูกต้อง");
+    }
+  };
+
+  const filtered = mockData.filter((item) => {
+    const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
+    const matchStatus = selectedStatus === "ทั้งหมด" || item.status === selectedStatus;
+    return matchId && matchStatus;
+  });
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentData = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const handleDetailClick = (id: string) => {
+    setSelectedId(id);
+    setShowDetail(true);
+  };
+
+  // หน้า Login
+  if (!loggedIn) {
+    return (
+      <main className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
+        <div className="w-full max-w-lg bg-white/20 backdrop-blur-2xl rounded-[2rem] p-8 text-white">
+          <div className="flex justify-center mb-8">
+            <Logo />
+          </div>
+          <h2 className="text-center text-2xl font-semibold mb-8">PORTAL</h2>
+          {error && <p className="text-red-400 text-center mb-4">{error}</p>}
+
+          <div className="mb-6">
+            <label className="block text-xs font-medium mb-2">USERNAME</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Username"
+              className="w-full h-12 rounded-full px-4 bg-white/20 border border-white/30 text-white placeholder-white/60 focus:outline-none"
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+          </div>
+
+          <div className="mb-8">
+            <label className="block text-xs font-medium mb-2">PASSWORD</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+              className="w-full h-12 rounded-full px-4 bg-white/20 border border-white/30 text-white placeholder-white/60 focus:outline-none"
+            />
+          </div>
+
+          <button
+            onClick={handleLogin}
+            className="block mx-auto px-8 py-2 rounded-full bg-white text-black font-semibold"
           >
-            Read our docs
-          </a>
+            LOG IN
+          </button>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+    );
+  }
+
+  // หน้า Dashboard
+  return (
+    <main className="relative min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black p-6">
+      {/* Desktop Logo: fixed top-left on larger screens */}
+<div className="hidden sm:block fixed top-4 left-4 z-50">
+  <Logo />
+</div>
+{/* Mobile Logo: centered at top of flow on small screens */}
+<div className="block sm:hidden w-full flex justify-center mb-6">
+  <Logo />
+</div>
+      <div className="max-w-6xl mx-auto">
+        <DashboardNavbar
+          searchId={searchId}
+          onSearchIdChange={setSearchId}
+          selectedStatus={selectedStatus}
+          onStatusChange={setSelectedStatus}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+        />
+        <PropertyGrid data={currentData} onDetailClick={handleDetailClick} />
+        <div className="flex justify-center items-center gap-4 mt-6 text-white">
+          <button
+            onClick={() => setPage((p) => Math.max(p - 1, 1))}
+            disabled={page === 1}
+            className="px-4 py-2 rounded bg-white/20 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span>Page {page} of {totalPages}</span>
+          <button
+            onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+            disabled={page === totalPages}
+            className="px-4 py-2 rounded bg-white/20 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+      {showDetail && selectedId && (
+        <PropertyDetailModal property={mockDetail} onClose={() => setShowDetail(false)} />
+      )}
+    </main>
   );
 }

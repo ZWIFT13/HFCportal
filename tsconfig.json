@@ -18,10 +18,16 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".",               // ✅ เพิ่มให้ครบ
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["src/app/*"]           // ✅ ให้ Next.js รู้จัก alias @/
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }
