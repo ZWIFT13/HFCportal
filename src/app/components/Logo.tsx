@@ -7,12 +7,12 @@ import Image from 'next/image';
  */
 export default function Logo() {
   return (
-    <div className="inline-block w-[200px] h-auto p-2">
+    <div className="inline-block w-[100px] h-auto p-2">
       <Image
         src="/logo.webp"
         alt="HOME for Cash บ้านแลกเงิน"
-        width={200}
-        height={80}
+        width={100}
+        height={40}
         priority
         quality={80}
         placeholder="empty"

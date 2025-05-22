@@ -1,3 +1,4 @@
+// src/app/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -16,18 +17,19 @@ const transactionTypes: TransactionType[] = ["ขายฝาก", "จำนอ
 const provinces = ["กรุงเทพฯ", "ปทุมธานี", "นนทบุรี", "สมุทรปราการ"];
 
 const mockData: (Property & { isNew: boolean; images: string[] })[] = Array.from(
-  { length: 30 }, (_, i) => ({
+  { length: 30 },
+  (_, i) => ({
     id: `PROP${String(i + 1).padStart(3, "0")}`,
     ownerName: `เจ้าของ PROP${i + 1}`,
     ownerPhone: `08${Math.floor(10000000 + Math.random() * 90000000)}`,
-    locationLink: `https://goo.gl/maps/${String(i + 1).padStart(3, '0').toLowerCase()}`,
+    locationLink: `https://goo.gl/maps/${String(i + 1).padStart(3, "0").toLowerCase()}`,
     province: provinces[i % provinces.length],
     status: statuses[i % statuses.length],
     transactionType: transactionTypes[i % transactionTypes.length],
     isNew: i < 5,
     images: [`house${(i % 4) + 1}.jpg`],
-  }))
-;
+  })
+);
 
 // ข้อมูลรายละเอียดตัวอย่าง (ใช้สำหรับ modal)
 const mockDetail: PropertyDetail = {
@@ -77,21 +79,23 @@ export default function Home() {
     return matchId && matchStatus;
   });
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const currentData = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
+  const currentData = filtered.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
   const handleDetailClick = (id: string) => {
     setSelectedId(id);
     setShowDetail(true);
   };
 
-  // หน้า Login
+  // หน้า Login 
   if (!loggedIn) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
         <div className="w-full max-w-lg bg-white/20 backdrop-blur-2xl rounded-[2rem] p-8 text-white">
-          <div className="flex justify-center mb-8">
-            <Logo />
+          <div className="flex justify-center mb-6">
+            <Logo className="h-12 w-[200px]" />
           </div>
-          <h2 className="text-center text-2xl font-semibold mb-8">PORTAL</h2>
           {error && <p className="text-red-400 text-center mb-4">{error}</p>}
 
           <div className="mb-6">
@@ -127,26 +131,20 @@ export default function Home() {
     );
   }
 
-  // หน้า Dashboard
+  // หน้า Dashboard (ไม่มี Logo ตรงนี้)
   return (
-    <main className="relative min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black p-6">
-      {/* Desktop Logo: fixed top-left on larger screens */}
-<div className="hidden sm:block fixed top-4 left-4 z-50">
-  <Logo />
-</div>
-{/* Mobile Logo: centered at top of flow on small screens */}
-<div className="block sm:hidden w-full flex justify-center mb-6">
-  <Logo />
-</div>
-      <div className="max-w-6xl mx-auto">
-        <DashboardNavbar
-          searchId={searchId}
-          onSearchIdChange={setSearchId}
-          selectedStatus={selectedStatus}
-          onStatusChange={setSelectedStatus}
-          selectedDate={selectedDate}
-          onDateChange={setSelectedDate}
-        />
+    <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen p-10">
+      {/* Navbar กินเต็มหน้าจอ */}
+      <DashboardNavbar
+        searchId={searchId}
+        onSearchIdChange={setSearchId}
+        selectedStatus={selectedStatus}
+        onStatusChange={setSelectedStatus}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+      />
+
+      <main className="max-w-6xl mx-auto px-6 py-6">
         <PropertyGrid data={currentData} onDetailClick={handleDetailClick} />
         <div className="flex justify-center items-center gap-4 mt-6 text-white">
           <button
@@ -156,7 +154,9 @@ export default function Home() {
           >
             Previous
           </button>
-          <span>Page {page} of {totalPages}</span>
+          <span>
+            Page {page} of {totalPages}
+          </span>
           <button
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             disabled={page === totalPages}
@@ -165,10 +165,11 @@ export default function Home() {
             Next
           </button>
         </div>
-      </div>
+      </main>
+
       {showDetail && selectedId && (
         <PropertyDetailModal property={mockDetail} onClose={() => setShowDetail(false)} />
       )}
-    </main>
+    </div>
   );
 }

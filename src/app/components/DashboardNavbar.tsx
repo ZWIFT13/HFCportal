@@ -1,9 +1,17 @@
+// src/app/components/DashboardNavbar.tsx
 "use client";
 
+import Logo from "./Logo";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const statuses = ["ทั้งหมด", "พร้อมขาย", "กำลังประเมิน", "นัดดู", "เสร็จแล้ว"];
+const statuses = [
+  "ทั้งหมด",
+  "รอทำธุรกรรม",
+  "กำลังประเมิน",
+  "นัดดู",
+  "เสร็จแล้ว",
+];
 
 type Props = {
   searchId: string;
@@ -23,45 +31,51 @@ export default function DashboardNavbar({
   onDateChange,
 }: Props) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 bg-white/4 backdrop-blur-lg rounded-3xl p-4 shadow-md mb-6">
-      {/* 🔍 Search ID */}
+    <nav className="w-full bg-white/10 backdrop-blur-lg rounded-3xl p-4 shadow-md mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      {/* Logo */}
+      <div className="flex-shrink-0 self-center sm:self-auto">
+        {/* ขนาดเล็กลงครึ่งหนึ่ง จากเดิม h-8 → h-4, sm:h-10 → sm:h-5 */}
+        <Logo className="h-4 sm:h-5 md:h-6" />
+      </div>
+
+      {/* กล่องค้นหา */}
       <input
         type="text"
         placeholder="ค้นหารหัสทรัพย์ (เช่น PROP001)"
         value={searchId}
         onChange={(e) => onSearchIdChange(e.target.value)}
-        className="h-12 flex-1 min-w-[200px] rounded-full px-5 bg-transparent border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        className="w-full sm:flex-1 h-12 rounded-full px-4 bg-transparent border border-white/30 text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-blue-300"
       />
 
-      {/* 🧭 Filter by Status */}
-      <select
-        value={selectedStatus}
-        onChange={(e) => onStatusChange(e.target.value)}
-        className="h-12 rounded-full px-5 bg-transparent border border-white/30 text-white focus:outline-none"
-      >
-        {statuses.map((status) => (
-          <option key={status} value={status} className="text-black">
-            {status}
-          </option>
-        ))}
-      </select>
+      {/* ตัวกรองสถานะ + วันที่ */}
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+        <select
+          value={selectedStatus}
+          onChange={(e) => onStatusChange(e.target.value)}
+          className="w-full sm:w-auto h-12 rounded-full px-4 bg-transparent border border-white/30 text-white focus:outline-none"
+        >
+          {statuses.map((s) => (
+            <option key={s} value={s} className="text-black">
+              {s}
+            </option>
+          ))}
+        </select>
 
-      {/* 🗓️ Filter by Date */}
-      <div className="relative">
-        <DatePicker
-          selected={selectedDate}
-          onChange={onDateChange}
-          placeholderText="เลือกวัน"
-          dateFormat="dd/MM/yyyy"
-          className="h-12 rounded-full px-5 bg-transparent border border-white/30 text-white placeholder-white/60 focus:outline-none"
-          popperPlacement="bottom-start"
-          wrapperClassName="w-full"
-          portalId="date-portal"
-        />
-        <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-white/60">
-          🗓️
-        </span>
+        <div className="relative w-full sm:w-auto">
+          <DatePicker
+            selected={selectedDate}
+            onChange={onDateChange}
+            placeholderText="เลือกวัน"
+            dateFormat="dd/MM/yyyy"
+            className="w-full sm:w-auto h-12 rounded-full px-4 bg-transparent border border-white/30 text-white placeholder-white/60 focus:outline-none"
+            popperPlacement="bottom-start"
+            portalId="date-portal"
+          />
+          <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-white/60">
+            🗓️
+          </span>
+        </div>
       </div>
-    </div>
+    </nav>
   );
 }
