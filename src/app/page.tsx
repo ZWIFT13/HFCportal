@@ -5,10 +5,13 @@ import Logo from "@/components/Logo";
 import DashboardNavbar from "@/components/DashboardNavbar";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import PropertyGrid from "@/components/DashboardGrid";
-import { Property, PropertyDetail, TransactionType, StatusType } from "@/types/property";
+import { Property, PropertyDetail, TransactionType } from "@/types/property";
+
+// กำหนด StatusType เป็น union type ของสถานะที่ใช้
+type StatusType = "รอทำธุรกรรม" | "นัดดู" | "กำลังประเมิน" | "เสร็จแล้ว";
 
 // สร้าง mock data 30 รายการ พร้อม flag isNew และ images
-const statuses: StatusType[] = ["พร้อมขาย", "นัดดู", "กำลังประเมิน", "เสร็จแล้ว"];
+const statuses: StatusType[] = ["รอทำธุรกรรม", "นัดดู", "กำลังประเมิน", "เสร็จแล้ว"];
 const transactionTypes: TransactionType[] = ["ขายฝาก", "จำนอง"];
 const provinces = ["กรุงเทพฯ", "ปทุมธานี", "นนทบุรี", "สมุทรปราการ"];
 
