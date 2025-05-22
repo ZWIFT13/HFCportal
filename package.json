@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "git:push": "git add . && git commit -m \"chore: update code\" && git push origin main"
+    "git:push": "git add . && git commit -m \"quick fixed\" && git push origin main"
   },
   "dependencies": {
     "date-fns": "^4.1.0",

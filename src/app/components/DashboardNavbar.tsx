@@ -31,11 +31,11 @@ export default function DashboardNavbar({
   onDateChange,
 }: Props) {
   return (
-    <nav className="w-full bg-white/10 backdrop-blur-lg rounded-3xl p-4 shadow-md mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <nav className="w-full bg-white/10 backdrop-blur-lg rounded-3xl p-6 shadow-md mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       {/* Logo */}
       <div className="flex-shrink-0 self-center sm:self-auto">
         {/* ขนาดเล็กลงครึ่งหนึ่ง จากเดิม h-8 → h-4, sm:h-10 → sm:h-5 */}
-        <Logo className="h-4 sm:h-5 md:h-6" />
+        <Logo className="h-10 w-auto" />
       </div>
 
       {/* กล่องค้นหา */}

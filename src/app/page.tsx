@@ -94,7 +94,7 @@ export default function Home() {
       <main className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
         <div className="w-full max-w-lg bg-white/20 backdrop-blur-2xl rounded-[2rem] p-8 text-white">
           <div className="flex justify-center mb-6">
-            <Logo className="h-12 w-[200px]" />
+            <Logo className="h-24 w-auto" />
           </div>
           {error && <p className="text-red-400 text-center mb-4">{error}</p>}
 
