@@ -15,13 +15,18 @@ export default function PropertyTable({ data, onDetailClick }: Props) {
             <th className="px-4 py-2">ชื่อทรัพย์</th>
             <th className="px-4 py-2">สถานที่</th>
             <th className="px-4 py-2">สถานะ</th>
-            <th className="px-4 py-2 text-center"> </th>
+            <th className="px-4 py-2 text-center"> </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 text-black">
           {data.map((p) => (
-            <tr key={p.id} className="hover:bg-gray-50 text-sm text-black">
-              <td className="px-4 py-2 font-mono text-blue-600">{p.id}</td>
+            <tr
+              key={p.id}
+              className="hover:bg-gray-50 text-sm text-black"
+            >
+              <td className="px-4 py-2 font-mono text-blue-600">
+                {p.id}
+              </td>
               <td className="px-4 py-2">{p.ownerName}</td>
               <td className="px-4 py-2">
                 <a
@@ -49,4 +54,3 @@ export default function PropertyTable({ data, onDetailClick }: Props) {
     </div>
   );
 }
-3

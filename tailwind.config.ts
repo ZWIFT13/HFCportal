@@ -1,17 +1,10 @@
-// tailwind.config.ts
-import type { Config } from 'tailwindcss'
+// next.config.ts
+import type { NextConfig } from 'next';
 
-const config: Config = {
-  content: [
-    './src/app/**/*.{js,jsx,ts,tsx}',
-    './src/components/**/*.{js,jsx,ts,tsx}',
-    './public/**/*.{svg}',
-    'node_modules/react-datepicker/dist/**/*.{css}',
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  // ใส่เฉพาะตัวเลือกที่ Next.js รู้จัก เช่น
+  // swcMinify, images.domains, basePath, redirects, rewrites ฯลฯ
+};
 
-export default config
+export default nextConfig;
