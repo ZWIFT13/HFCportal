@@ -10,6 +10,8 @@
     "git:push": "git add . && git commit -m \"quick fixed\" && git push origin main"
   },
   "dependencies": {
+    "@line/bot-sdk": "^9.9.0",
+    "@prisma/client": "^6.8.2",
     "date-fns": "^4.1.0",
     "next": "^15.3.2",
     "react": "^19.1.0",
