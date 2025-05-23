@@ -1,6 +1,7 @@
 // src/components/ImageCarousel.tsx
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 
 type Props = {
   images: string[];
@@ -49,12 +50,14 @@ export default function ImageCarousel({
           return (
             <div
               key={idx}
-              className="inline-block w-full h-64 md:h-80 lg:h-96"
+              className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
             >
-              <img
+              <Image
                 src={resolvedSrc}
                 alt={`ภาพ ${idx + 1}`}
-                className="object-cover w-full h-full"
+                fill
+                className="object-cover"
+                unoptimized
               />
             </div>
           );
