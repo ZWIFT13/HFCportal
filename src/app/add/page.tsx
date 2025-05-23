@@ -64,9 +64,7 @@ export default function AddPage() {
   const [images, setImages] = useState<File[]>([]);
   const [previewPaths, setPreviewPaths] = useState<string[]>([]);
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
   };
@@ -78,19 +76,13 @@ export default function AddPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       // 1. Upload images
       const fd = new FormData();
       images.forEach(file => fd.append('images', file));
-      const uploadRes = await fetch('/api/upload', {
-        method: 'POST',
-        body: fd,
-      });
+      const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd });
       const uploadData = await uploadRes.json();
-      if (!uploadRes.ok) {
-        throw new Error(uploadData.error || 'อัปโหลดรูปไม่สำเร็จ');
-      }
+      if (!uploadRes.ok) throw new Error(uploadData.error || 'อัปโหลดรูปไม่สำเร็จ');
       setPreviewPaths(uploadData.paths);
 
       // 2. Submit property data
@@ -103,14 +95,10 @@ export default function AddPage() {
         const err = await propRes.json();
         throw new Error(err.error || 'บันทึกข้อมูลไม่สำเร็จ');
       }
-
       // 3. Navigate home on success
       router.push('/dashboard');
     } catch (error: unknown) {
-      const message =
-        error instanceof Error
-          ? error.message
-          : 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
+      const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
       console.error('Error submitting form:', message);
       alert(message);
     }
@@ -124,7 +112,8 @@ export default function AddPage() {
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {(Object.keys(form) as (keyof FormFields)[])
-            .filter(key => !['province', 'status', 'progressStatus'].includes(key))
+            // เอา province กับ status ออก
+            .filter(key => !['province', 'status'].includes(key))
             .map(key => (
               <input
                 key={key}
@@ -132,10 +121,10 @@ export default function AddPage() {
                 placeholder={key}
                 value={form[key]}
                 onChange={handleChange}
-                required={['id', 'ownerName'].includes(key)}
+                required={['id','ownerName'].includes(key)}
                 className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
               />
-          ))}
+            ))}
 
           {/* จังหวัด */}
           <input

@@ -7,7 +7,7 @@ import DashboardNavbar from "@/components/DashboardNavbar";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import PropertyGrid from "@/components/DashboardGrid";
 import Link from "next/link";
-import { PropertyDetail, Property } from "@/types/property";
+import { Property, PropertyDetail } from "@/types/property";
 
 export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
@@ -31,10 +31,11 @@ export default function Home() {
       .catch((err) => console.error("❌ Fetch failed:", err));
   }, []);
 
+  // ใช้ item.status แทน progressStatus
   const filtered = properties.filter((item) => {
     const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
     const matchStatus =
-      selectedStatus === "ทั้งหมด" || item.progressStatus === selectedStatus;
+      selectedStatus === "ทั้งหมด" || item.status === selectedStatus;
     return matchId && matchStatus;
   });
 
@@ -155,9 +156,7 @@ export default function Home() {
 
       {showDetail && selectedId && (
         <PropertyDetailModal
-          property={
-            properties.find((p) => p.id === selectedId) as PropertyDetail
-          }
+          property={properties.find((p) => p.id === selectedId) as PropertyDetail}
           onClose={() => setShowDetail(false)}
         />
       )}
