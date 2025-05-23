@@ -1,27 +1,27 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["dataProxy"]
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
 model Property {
-  id              String   @id
-  ownerName       String
-  ownerPhone      String
-  propertyType    String?
-  agentName       String?
-  progressStatus  String?
-  status          String?              // ✅ เพิ่ม field สถานะใหม่
-  investor        String?
-  estimatedPrice  Int?
-  approvedPrice   Int?
-  locationLink    String?
-  mapEmbedLink    String?
-  province        String?              
-  images          String   @default("[]") 
-  createdAt       DateTime @default(now())
+  id             String   @id @default(uuid())
+  ownerName      String
+  ownerPhone     String
+  propertyType   String?
+  agentName      String?
+  progressStatus String?
+  status         String?
+  investor       String?
+  estimatedPrice Int?
+  approvedPrice  Int?
+  locationLink   String?
+  mapEmbedLink   String?
+  province       String?
+  images         Json     @default("[]")
+  createdAt      DateTime @default(now())
 }
-
