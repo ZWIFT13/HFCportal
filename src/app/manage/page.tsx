@@ -1,79 +1,85 @@
-"use client";
+// src/app/manage/page.tsx
+'use client';
 
-import { useEffect, useState } from "react";
-import { Property } from "@/types/property";
-import Link from "next/link";
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Property } from '@/types/property';
 
 export default function ManagePage() {
+  const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [filtered, setFiltered] = useState<Property[]>([]);
 
   useEffect(() => {
-    fetch("/api/properties")
-      .then((res) => res.json())
-      .then((data) => setProperties(data))
-      .catch((err) => console.error("❌ โหลดข้อมูลล้มเหลว:", err));
+    fetch('/api/properties')
+      .then(res => res.json())
+      .then((data: Property[]) => {
+        setProperties(data);
+        setFiltered(data);
+      })
+      .catch(console.error);
   }, []);
 
-  const handleDelete = async (id: string) => {
-    const confirmDelete = confirm(`ยืนยันลบรายการ ${id} หรือไม่?`);
-    if (!confirmDelete) return;
-
-    const res = await fetch(`/api/properties/${id}`, {
-      method: "DELETE",
-    });
-
-    if (res.ok) {
-      setProperties((prev) => prev.filter((p) => p.id !== id));
-    } else {
-      alert("❌ ลบไม่สำเร็จ");
-    }
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const q = e.target.value.toLowerCase();
+    setFiltered(
+      properties.filter(p =>
+        p.ownerName.toLowerCase().includes(q) ||
+        p.id.toLowerCase().includes(q) ||
+        p.province?.toLowerCase().includes(q)
+      )
+    );
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* ✅ กลับหน้าหลัก */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">จัดการรายการทรัพย์</h1>
-          <Link
-            href="/"
-            className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-semibold shadow transition"
-          >
-            ← กลับหน้าหลัก
-          </Link>
-        </div>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4">จัดการทรัพย์</h1>
+      <input
+        type="text"
+        placeholder="ค้นหา..."
+        onChange={handleSearch}
+        className="mb-4 px-4 py-2 border rounded"
+      />
 
-        <table className="w-full table-auto bg-white/10 rounded-xl overflow-hidden">
-          <thead className="bg-white/20 text-white text-sm">
+      <div className="overflow-auto shadow rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50 text-gray-700 text-left text-sm font-semibold">
             <tr>
-              <th className="px-4 py-2">รหัส</th>
-              <th className="px-4 py-2">เจ้าของ</th>
-              <th className="px-4 py-2">เบอร์</th>
+              <th className="px-4 py-2">ID</th>
+              <th className="px-4 py-2">ชื่อเจ้าของ</th>
+              <th className="px-4 py-2">เบอร์โทร</th>
               <th className="px-4 py-2">ประเภท</th>
               <th className="px-4 py-2">สถานะ</th>
-              <th className="px-4 py-2">จัดการ</th>
+              <th className="px-4 py-2 text-center">Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {properties.map((property) => (
-              <tr key={property.id} className="border-t border-white/10 text-sm">
-                <td className="px-4 py-2">{property.id}</td>
+          <tbody className="divide-y divide-gray-100 text-black text-sm">
+            {filtered.map(property => (
+              <tr
+                key={property.id}
+                className="hover:bg-gray-50"
+              >
+                <td className="px-4 py-2 font-mono text-blue-600">
+                  {property.id}
+                </td>
                 <td className="px-4 py-2">{property.ownerName}</td>
                 <td className="px-4 py-2">{property.ownerPhone}</td>
                 <td className="px-4 py-2">{property.propertyType}</td>
-                <td className="px-4 py-2">{property.progressStatus}</td>
-                <td className="px-4 py-2 flex gap-2">
+                <td className="px-4 py-2">
+                  {property.status}
+                </td>
+                <td className="px-4 py-2 text-right space-x-2">
                   <button
-                    className="px-3 py-1 rounded-full text-xs bg-yellow-500 text-black"
-                    onClick={() => alert("ยังไม่เปิดหน้าแก้ไข")}
+                    onClick={() => router.push(`/property/${property.id}`)}
+                    className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
                   >
-                    แก้ไข
+                    ดู
                   </button>
                   <button
-                    className="px-3 py-1 rounded-full text-xs bg-red-600 text-white"
-                    onClick={() => handleDelete(property.id)}
+                    onClick={() => router.push(`/property/edit/${property.id}`)}
+                    className="px-3 py-1 bg-yellow-500 text-black rounded hover:bg-yellow-600"
                   >
-                    ลบ
+                    แก้ไข
                   </button>
                 </td>
               </tr>
