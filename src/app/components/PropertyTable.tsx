@@ -20,23 +20,22 @@ export default function PropertyTable({ data, onDetailClick }: Props) {
         </thead>
         <tbody className="divide-y divide-gray-100 text-black">
           {data.map((p) => (
-            <tr
-              key={p.id}
-              className="hover:bg-gray-50 text-sm text-black"
-            >
-              <td className="px-4 py-2 font-mono text-blue-600">
-                {p.id}
-              </td>
+            <tr key={p.id} className="hover:bg-gray-50 text-sm text-black">
+              <td className="px-4 py-2 font-mono text-blue-600">{p.id}</td>
               <td className="px-4 py-2">{p.ownerName}</td>
               <td className="px-4 py-2">
-                <a
-                  href={p.locationLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 underline"
-                >
-                  {p.province}
-                </a>
+                {p.locationLink ? (
+                  <a
+                    href={p.locationLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    {p.province}
+                  </a>
+                ) : (
+                  <span className="text-gray-500">{p.province}</span>
+                )}
               </td>
               <td className="px-4 py-2">{p.status}</td>
               <td className="px-4 py-2 text-right">

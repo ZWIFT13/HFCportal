@@ -1,10 +1,15 @@
-// next.config.ts
-import type { NextConfig } from 'next';
+import type { Config } from 'tailwindcss';
 
-const nextConfig: NextConfig = {
-  reactStrictMode: true,
-  // ใส่เฉพาะตัวเลือกที่ Next.js รู้จัก เช่น
-  // swcMinify, images.domains, basePath, redirects, rewrites ฯลฯ
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx}',
+    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
 };
 
-export default nextConfig;
+export default config;

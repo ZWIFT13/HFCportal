@@ -1,15 +1,8 @@
-import type { Config } from "tailwindcss";
+import type { NextConfig } from 'next';
 
-const config: Config = {
-  content: [
-    "./pages/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-    "./app/**/*.{js,ts,jsx,tsx}", // รองรับ App Router ด้วยถ้าใช้
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
+const nextConfig: NextConfig = {
+  reactStrictMode: true,
+  // any other Next.js options you need
 };
 
-export default config;
+export default nextConfig;
