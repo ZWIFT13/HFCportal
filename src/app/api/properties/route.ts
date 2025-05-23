@@ -1,6 +1,5 @@
-// src/app/api/properties/route.ts
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Property as PrismaProperty } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -19,7 +18,9 @@ export async function POST(request: Request) {
     approvedPrice,
     locationLink,
     mapEmbedLink,
-    images, // เป็น array
+    images,         // เป็น array
+    province,       // ✅ เพิ่ม
+    status,         // ✅ เพิ่ม
   } = body;
 
   try {
@@ -36,6 +37,8 @@ export async function POST(request: Request) {
         approvedPrice: Number(approvedPrice),
         locationLink,
         mapEmbedLink,
+        province,
+        status,
         images: JSON.stringify(images), // เก็บ JSON string
       },
     });
@@ -50,6 +53,9 @@ export async function POST(request: Request) {
 export async function GET() {
   const properties = await prisma.property.findMany();
   return NextResponse.json(
-    properties.map((p) => ({ ...p, images: JSON.parse(p.images) }))
+    properties.map((p: PrismaProperty) => ({
+      ...p,
+      images: JSON.parse(p.images),
+    }))
   );
 }
