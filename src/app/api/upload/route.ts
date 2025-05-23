@@ -1,49 +1,39 @@
 // src/app/api/upload/route.ts
-
 export const runtime = 'nodejs';
 
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
+import { mkdir, writeFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
-import { existsSync } from 'fs';
 
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const formData = await req.formData();
-    const files = formData.getAll('images') as File[];
+    const form = await request.formData();
+    const files = form.getAll('images') as File[];
 
-    const uploadDir = path.join('/tmp', 'uploads');
+    // โฟลเดอร์ชั่วคราวบน Vercel
+    const uploadDir = '/tmp/upload';
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
 
-    const uploadedPaths: string[] = [];
+    const paths: string[] = [];
     for (const file of files) {
-      if (file && file.size > 0) {
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const ext = (file.name.split('.').pop() ?? 'bin').toLowerCase();
-        const fileName = `${randomUUID()}.${ext}`;
-        const filePath = path.join(uploadDir, fileName);
-        await writeFile(filePath, buffer);
-        uploadedPaths.push(`/api/uploads/${fileName}`);
+      if (file.size > 0) {
+        const buf = Buffer.from(await file.arrayBuffer());
+        const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
+        const name = `${randomUUID()}.${ext}`;
+        await writeFile(path.join(uploadDir, name), buf);
+        // คืน URL ให้ client โหลดต่อจาก GET route
+        paths.push(`/api/upload/${name}`);
       }
     }
 
-    return NextResponse.json({ paths: uploadedPaths }, { status: 200 });
-
-  } catch (error: unknown) {
-    console.error('Upload error:', error);
-    const message =
-      error instanceof Error
-        ? error.message
-        : typeof error === 'string'
-        ? error
-        : 'Unknown error';
-
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ paths }, { status: 200 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Upload failed';
+    console.error('POST /api/upload error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

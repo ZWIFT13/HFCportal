@@ -1,7 +1,8 @@
-"use client";
+// src/app/add/page.tsx
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const THAI_PROVINCES = [
   "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร",
@@ -48,21 +49,20 @@ type FormFields = {
 export default function AddPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormFields>({
-    id: "",
-    ownerName: "",
-    ownerPhone: "",
-    propertyType: "",
-    agentName: "",
-    progressStatus: "",
-    investor: "",
-    estimatedPrice: "",
-    approvedPrice: "",
-    locationLink: "",
-    mapEmbedLink: "",
-    province: "",
-    status: "",
+    id: '',
+    ownerName: '',
+    ownerPhone: '',
+    propertyType: '',
+    agentName: '',
+    progressStatus: '',
+    investor: '',
+    estimatedPrice: '',
+    approvedPrice: '',
+    locationLink: '',
+    mapEmbedLink: '',
+    province: '',
+    status: '',
   });
-
   const [images, setImages] = useState<File[]>([]);
   const [previewPaths, setPreviewPaths] = useState<string[]>([]);
 
@@ -70,55 +70,67 @@ export default function AddPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setImages(files);
+    setImages(Array.from(e.target.files || []));
     setPreviewPaths([]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    images.forEach((file) => formData.append("images", file));
+    try {
+      // 1. Upload images
+      const fd = new FormData();
+      images.forEach(file => fd.append('images', file));
+      const uploadRes = await fetch('/api/upload', {
+        method: 'POST',
+        body: fd,
+      });
+      const uploadData = await uploadRes.json();
+      if (!uploadRes.ok) {
+        throw new Error(uploadData.error || 'อัปโหลดรูปไม่สำเร็จ');
+      }
+      setPreviewPaths(uploadData.paths);
 
-    const uploadRes = await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
+      // 2. Submit property data
+      const propRes = await fetch('/api/properties', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, images: uploadData.paths }),
+      });
+      const propData = await propRes.json();
+      if (!propRes.ok) {
+        throw new Error(propData.error || 'บันทึกข้อมูลไม่สำเร็จ');
+      }
 
-    const { paths } = await uploadRes.json();
-    setPreviewPaths(paths);
-
-    const res = await fetch("/api/properties", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...form, images: paths }),
-    });
-
-    if (res.ok) router.push("/");
-    else alert("เกิดข้อผิดพลาด");
+      // 3. Navigate home on success
+      router.push('/');
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message);
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
       <div className="w-full max-w-3xl bg-white/20 backdrop-blur-xl rounded-[2rem] p-10 shadow-xl border border-white/30">
-        <h1 className="text-3xl font-semibold text-white mb-8 text-center">เพิ่มข้อมูลทรัพย์</h1>
-
+        <h1 className="text-3xl font-semibold text-white mb-8 text-center">
+          เพิ่มข้อมูลทรัพย์
+        </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {(Object.keys(form) as (keyof FormFields)[])
-            .filter((key) => !["province", "status"].includes(key))
-            .map((key) => (
+            .filter(key => !['province', 'status'].includes(key))
+            .map(key => (
               <input
                 key={key}
                 name={key}
                 placeholder={key}
                 value={form[key]}
                 onChange={handleChange}
-                required={["id", "ownerName"].includes(key)}
+                required={['id', 'ownerName'].includes(key)}
                 className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
               />
           ))}
@@ -134,7 +146,7 @@ export default function AddPage() {
             className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
           />
           <datalist id="province-options">
-            {THAI_PROVINCES.map((prov) => (
+            {THAI_PROVINCES.map(prov => (
               <option key={prov} value={prov} />
             ))}
           </datalist>
@@ -145,12 +157,14 @@ export default function AddPage() {
             value={form.status}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
-            style={{ colorScheme: "dark" }} // ป้องกัน text จม
+            className="w-full px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            style={{ colorScheme: 'dark' }}
           >
             <option value="" disabled>เลือกสถานะ</option>
-            {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s} className="text-black">{s}</option>
+            {STATUS_OPTIONS.map(s => (
+              <option key={s} value={s} className="text-black">
+                {s}
+              </option>
             ))}
           </select>
 
@@ -168,8 +182,8 @@ export default function AddPage() {
                 <img
                   key={i}
                   src={src}
-                  className="h-24 w-24 object-cover rounded-xl border border-white/30"
                   alt={`uploaded-${i}`}
+                  className="h-24 w-24 object-cover rounded-xl border border-white/30"
                 />
               ))}
             </div>

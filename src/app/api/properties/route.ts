@@ -1,29 +1,32 @@
-import { NextResponse } from "next/server";
-import { PrismaClient, Property as PrismaProperty } from "@prisma/client";
+// src/app/api/properties/route.ts
+export const runtime = 'nodejs';
+
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import type { Property as PrismaProperty } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function POST(request: Request) {
-  const body = await request.json();
-
-  const {
-    id,
-    ownerName,
-    ownerPhone,
-    propertyType,
-    agentName,
-    progressStatus,
-    investor,
-    estimatedPrice,
-    approvedPrice,
-    locationLink,
-    mapEmbedLink,
-    images,         // เป็น array
-    province,       // ✅ เพิ่ม
-    status,         // ✅ เพิ่ม
-  } = body;
-
   try {
+    const body = await request.json();
+    const {
+      id,
+      ownerName,
+      ownerPhone,
+      propertyType,
+      agentName,
+      progressStatus,
+      investor,
+      estimatedPrice,
+      approvedPrice,
+      locationLink,
+      mapEmbedLink,
+      images,    // คาดว่าจะเป็น array
+      province,
+      status,
+    } = body;
+
     const newProperty = await prisma.property.create({
       data: {
         id,
@@ -39,23 +42,40 @@ export async function POST(request: Request) {
         mapEmbedLink,
         province,
         status,
-        images: JSON.stringify(images), // เก็บ JSON string
+        images: JSON.stringify(images ?? []),  // เก็บเป็น JSON string เสมอ
       },
     });
 
     return NextResponse.json(newProperty, { status: 201 });
-  } catch (error) {
-    console.error("❌ Error:", error);
-    return NextResponse.json({ error: "Error saving property" }, { status: 500 });
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : 'Error saving property';
+    console.error('❌ POST /api/properties error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
 export async function GET() {
-  const properties = await prisma.property.findMany();
-  return NextResponse.json(
-    properties.map((p: PrismaProperty) => ({
-      ...p,
-      images: JSON.parse(p.images),
-    }))
-  );
+  try {
+    const properties = await prisma.property.findMany();
+
+    const result: Array<Omit<PrismaProperty, 'images'> & { images: unknown[] }> =
+      properties.map((p) => {
+        let imgs: unknown[] = [];
+        try {
+          imgs = JSON.parse(p.images);
+        } catch {
+          // หาก parse ไม่ได้ ให้เป็น empty array
+          imgs = [];
+        }
+        return { ...p, images: imgs };
+      });
+
+    return NextResponse.json(result);
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : 'Error fetching properties';
+    console.error('❌ GET /api/properties error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
