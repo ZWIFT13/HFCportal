@@ -108,9 +108,16 @@ export default function AddPage() {
 
       // 3. Navigate home on success
       router.push('/');
-    } catch (err: any) {
-      console.error(err);
-      alert(err.message);
+    } catch (error: unknown) {
+      // Handle error without using `any`
+      const message =
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+          ? error
+          : 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
+      console.error('Error submitting form:', message);
+      alert(message);
     }
   };
 
