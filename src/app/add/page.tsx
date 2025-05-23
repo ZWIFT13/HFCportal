@@ -29,9 +29,25 @@ const STATUS_OPTIONS = [
   "เสร็จแล้ว",
 ];
 
+type FormFields = {
+  id: string;
+  ownerName: string;
+  ownerPhone: string;
+  propertyType: string;
+  agentName: string;
+  progressStatus: string;
+  investor: string;
+  estimatedPrice: string;
+  approvedPrice: string;
+  locationLink: string;
+  mapEmbedLink: string;
+  province: string;
+  status: string;
+};
+
 export default function AddPage() {
   const router = useRouter();
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<FormFields>({
     id: "",
     ownerName: "",
     ownerPhone: "",
@@ -53,7 +69,8 @@ export default function AddPage() {
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,19 +109,18 @@ export default function AddPage() {
         <h1 className="text-3xl font-semibold text-white mb-8 text-center">เพิ่มข้อมูลทรัพย์</h1>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {[ "id", "ownerName", "ownerPhone", "propertyType",
-             "agentName", "progressStatus", "investor",
-             "estimatedPrice", "approvedPrice", "locationLink", "mapEmbedLink",
-          ].map((key) => (
-            <input
-              key={key}
-              name={key}
-              placeholder={key}
-              value={(form as any)[key]}
-              onChange={handleChange}
-              required={["id", "ownerName"].includes(key)}
-              className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
-            />
+          {(Object.keys(form) as (keyof FormFields)[])
+            .filter((key) => !["province", "status"].includes(key))
+            .map((key) => (
+              <input
+                key={key}
+                name={key}
+                placeholder={key}
+                value={form[key]}
+                onChange={handleChange}
+                required={["id", "ownerName"].includes(key)}
+                className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+              />
           ))}
 
           {/* จังหวัด */}
@@ -129,13 +145,12 @@ export default function AddPage() {
             value={form.status}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 bg-slate-700 text-white rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            style={{ colorScheme: "dark" }} // ป้องกัน text จม
           >
-            <option value="">เลือกสถานะ</option>
+            <option value="" disabled>เลือกสถานะ</option>
             {STATUS_OPTIONS.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
+              <option key={s} value={s} className="text-black">{s}</option>
             ))}
           </select>
 
