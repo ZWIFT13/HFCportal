@@ -32,9 +32,9 @@ export default function PropertyCard({ property, onClick }: Props) {
 
       {/* Status & NEW Badge */}
       <div className="absolute top-4 right-4 flex gap-2">
-        {property.progressStatus && (
+        {property.status && (
           <span className="inline-flex items-center px-3 py-1 bg-white/80 text-black text-xs font-semibold rounded-full">
-            {property.progressStatus}
+            {property.status}
           </span>
         )}
         {property.isNew && (

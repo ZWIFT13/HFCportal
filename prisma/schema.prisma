@@ -14,7 +14,6 @@ model Property {
   ownerPhone     String
   propertyType   String?
   agentName      String?
-  progressStatus String?
   status         String?
   investor       String?
   estimatedPrice Int?

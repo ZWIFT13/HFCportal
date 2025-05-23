@@ -36,7 +36,6 @@ type FormFields = {
   ownerPhone: string;
   propertyType: string;
   agentName: string;
-  progressStatus: string;
   investor: string;
   estimatedPrice: string;
   approvedPrice: string;
@@ -54,7 +53,6 @@ export default function AddPage() {
     ownerPhone: '',
     propertyType: '',
     agentName: '',
-    progressStatus: '',
     investor: '',
     estimatedPrice: '',
     approvedPrice: '',
@@ -101,20 +99,17 @@ export default function AddPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...form, images: uploadData.paths }),
       });
-      const propData = await propRes.json();
       if (!propRes.ok) {
-        throw new Error(propData.error || 'บันทึกข้อมูลไม่สำเร็จ');
+        const err = await propRes.json();
+        throw new Error(err.error || 'บันทึกข้อมูลไม่สำเร็จ');
       }
 
       // 3. Navigate home on success
-      router.push('/');
+      router.push('/dashboard');
     } catch (error: unknown) {
-      // Handle error without using `any`
       const message =
         error instanceof Error
           ? error.message
-          : typeof error === 'string'
-          ? error
           : 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
       console.error('Error submitting form:', message);
       alert(message);
@@ -129,7 +124,7 @@ export default function AddPage() {
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {(Object.keys(form) as (keyof FormFields)[])
-            .filter(key => !['province', 'status'].includes(key))
+            .filter(key => !['province', 'status', 'progressStatus'].includes(key))
             .map(key => (
               <input
                 key={key}
@@ -196,12 +191,22 @@ export default function AddPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            className="w-full py-3 rounded-xl bg-blue-500/80 text-white font-semibold hover:bg-blue-600 transition"
-          >
-            บันทึกข้อมูล
-          </button>
+          {/* ปุ่มยกเลิก กับ บันทึก */}
+          <div className="flex gap-4 mt-4">
+            <button
+              type="button"
+              onClick={() => router.push('/dashboard')}
+              className="w-1/2 py-3 rounded-xl bg-red-500/80 text-white font-semibold hover:bg-red-600 transition"
+            >
+              ยกเลิก
+            </button>
+            <button
+              type="submit"
+              className="w-1/2 py-3 rounded-xl bg-blue-500/80 text-white font-semibold hover:bg-blue-600 transition"
+            >
+              บันทึกข้อมูล
+            </button>
+          </div>
         </form>
       </div>
     </div>
