@@ -28,9 +28,9 @@ export default function PropertyDetailModal({ property, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center gap-4 mb-2">
           <h2 className="text-2xl font-bold">{property.id}</h2>
-          {property.progressStatus && (
+          {property.status && (
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-white text-black text-xs font-semibold shadow-sm">
-              {property.progressStatus}
+              {property.status}
             </div>
           )}
           {property.agentName && (
@@ -53,12 +53,32 @@ export default function PropertyDetailModal({ property, onClose }: Props) {
           <div className="flex flex-col gap-6">
             <ImageCarousel images={resolvedImages} />
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 space-y-2 text-sm">
-              <p><strong>ชื่อเจ้าของ:</strong> {property.ownerName}</p>
-              <p><strong>เบอร์โทร:</strong> {property.ownerPhone}</p>
-              <p><strong>ประเภท:</strong> {property.propertyType}</p>
-              <p><strong>ราคาประเมิน:</strong> {property.estimatedPrice != null ? property.estimatedPrice.toLocaleString() : "-"} บาท</p>
-              <p><strong>ราคาอนุมัติ:</strong> {property.approvedPrice != null ? property.approvedPrice.toLocaleString() : "-"} บาท</p>
-              <p><strong>นายทุน:</strong> {property.investor}</p>
+              <p>
+                <strong>ชื่อเจ้าของ:</strong> {property.ownerName}
+              </p>
+              <p>
+                <strong>เบอร์โทร:</strong> {property.ownerPhone}
+              </p>
+              <p>
+                <strong>ประเภท:</strong> {property.propertyType}
+              </p>
+              <p>
+                <strong>ราคาประเมิน:</strong>{" "}
+                {property.estimatedPrice != null
+                  ? property.estimatedPrice.toLocaleString()
+                  : "-"}{" "}
+                บาท
+              </p>
+              <p>
+                <strong>ราคาอนุมัติ:</strong>{" "}
+                {property.approvedPrice != null
+                  ? property.approvedPrice.toLocaleString()
+                  : "-"}{" "}
+                บาท
+              </p>
+              <p>
+                <strong>นายทุน:</strong> {property.investor}
+              </p>
             </div>
           </div>
 
