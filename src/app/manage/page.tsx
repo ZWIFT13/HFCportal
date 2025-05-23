@@ -62,7 +62,7 @@ export default function ManagePage() {
                 <td className="px-4 py-2">{property.ownerName}</td>
                 <td className="px-4 py-2">{property.ownerPhone}</td>
                 <td className="px-4 py-2">{property.propertyType}</td>
-                <td className="px-4 py-2">{property.progressStatus}</td>
+                <td className="px-4 py-2">{property.status}</td>
                 <td className="px-4 py-2 flex gap-2">
                   <button
                     className="px-3 py-1 rounded-full text-xs bg-yellow-500 text-black"
