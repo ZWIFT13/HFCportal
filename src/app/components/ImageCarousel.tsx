@@ -1,5 +1,3 @@
-// src/app/components/ImageCarousel.tsx
-
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 
@@ -15,7 +13,6 @@ export default function ImageCarousel({
   autoPlayInterval = 5000,
 }: Props) {
   const [current, setCurrent] = useState(0);
-  // กำหนด initialValue เป็น null เพื่อแก้ error TS2554
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const resetTimeout = () => {
@@ -25,15 +22,13 @@ export default function ImageCarousel({
   };
 
   useEffect(() => {
-    if (autoPlay) {
+    if (autoPlay && images.length > 1) {
       resetTimeout();
       timeoutRef.current = setTimeout(
         () => setCurrent((prev) => (prev + 1) % images.length),
         autoPlayInterval
       );
-      return () => {
-        resetTimeout();
-      };
+      return () => resetTimeout();
     }
   }, [current, autoPlay, autoPlayInterval, images.length]);
 
@@ -48,47 +43,57 @@ export default function ImageCarousel({
         className="whitespace-nowrap transition-transform duration-500"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {images.map((src, idx) => (
-          <div
-            key={idx}
-            className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
-          >
-            <Image
-              src={`/mock/${src}`}
-              alt={`ภาพ ${idx + 1}`}
-              fill
-              className="object-cover"
-            />
-          </div>
-        ))}
+        {images.map((src, idx) => {
+          const resolvedSrc = src.startsWith("/")
+            ? src
+            : `/uploads/${src}`;
+
+          return (
+            <div
+              key={idx}
+              className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
+            >
+              <Image
+                src={resolvedSrc}
+                alt={`ภาพ ${idx + 1}`}
+                fill
+                unoptimized // ✅ สำคัญมาก! เพื่อแสดงรูปจาก public/uploads ได้
+                className="object-cover"
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Prev / Next Buttons */}
-      <button
-        onClick={prevSlide}
-        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 focus:outline-none"
-      >
-        ‹
-      </button>
-      <button
-        onClick={nextSlide}
-        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 focus:outline-none"
-      >
-        ›
-      </button>
-
-      {/* Dots */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-        {images.map((_, idx) => (
+      {images.length > 1 && (
+        <>
           <button
-            key={idx}
-            onClick={() => setCurrent(idx)}
-            className={`w-2 h-2 rounded-full ${
-              idx === current ? "bg-white" : "bg-white/50"
-            }`}
-          />
-        ))}
-      </div>
+            onClick={prevSlide}
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 focus:outline-none"
+          >
+            ‹
+          </button>
+          <button
+            onClick={nextSlide}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/50 text-white rounded-full p-2 focus:outline-none"
+          >
+            ›
+          </button>
+
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+            {images.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrent(idx)}
+                className={`w-2 h-2 rounded-full ${
+                  idx === current ? "bg-white" : "bg-white/50"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

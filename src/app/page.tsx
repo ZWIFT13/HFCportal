@@ -1,60 +1,21 @@
 // src/app/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Logo from "@/components/Logo";
 import DashboardNavbar from "@/components/DashboardNavbar";
 import PropertyDetailModal from "@/components/PropertyDetailModal";
 import PropertyGrid from "@/components/DashboardGrid";
-import { Property, PropertyDetail, TransactionType } from "@/types/property";
-
-// กำหนด StatusType เป็น union type ของสถานะที่ใช้
-type StatusType = "รอทำธุรกรรม" | "นัดดู" | "กำลังประเมิน" | "เสร็จแล้ว";
-
-// สร้าง mock data 30 รายการ พร้อม flag isNew และ images
-const statuses: StatusType[] = ["รอทำธุรกรรม", "นัดดู", "กำลังประเมิน", "เสร็จแล้ว"];
-const transactionTypes: TransactionType[] = ["ขายฝาก", "จำนอง"];
-const provinces = ["กรุงเทพฯ", "ปทุมธานี", "นนทบุรี", "สมุทรปราการ"];
-
-const mockData: (Property & { isNew: boolean; images: string[] })[] = Array.from(
-  { length: 30 },
-  (_, i) => ({
-    id: `PROP${String(i + 1).padStart(3, "0")}`,
-    ownerName: `เจ้าของ PROP${i + 1}`,
-    ownerPhone: `08${Math.floor(10000000 + Math.random() * 90000000)}`,
-    locationLink: `https://goo.gl/maps/${String(i + 1).padStart(3, "0").toLowerCase()}`,
-    province: provinces[i % provinces.length],
-    status: statuses[i % statuses.length],
-    transactionType: transactionTypes[i % transactionTypes.length],
-    isNew: i < 5,
-    images: [`house${(i % 4) + 1}.jpg`],
-  })
-);
-
-// ข้อมูลรายละเอียดตัวอย่าง (ใช้สำหรับ modal)
-const mockDetail: PropertyDetail = {
-  id: "PROP001",
-  ownerName: "คุณสมศรี",
-  ownerPhone: "089-123-4567",
-  propertyType: "บ้านเดี่ยว",
-  agentName: "พี่นัท",
-  progressStatus: "กำลังประเมิน",
-  investor: "ทุน A",
-  estimatedPrice: 3200000,
-  approvedPrice: 3000000,
-  images: ["house1.jpg", "house2.jpg", "house3.jpg", "house4.jpg"],
-  locationLink: "https://goo.gl/maps/example1",
-  mapEmbedLink: "https://www.google.com/maps/embed?...",
-};
+import Link from "next/link";
+import { PropertyDetail, Property } from "@/types/property";
 
 export default function Home() {
-  // สถานะล็อกอิน
   const [loggedIn, setLoggedIn] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Dashboard states
+  const [properties, setProperties] = useState<Property[]>([]);
   const [searchId, setSearchId] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string>("ทั้งหมด");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -63,9 +24,33 @@ export default function Home() {
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
-  // Handlers
+  useEffect(() => {
+    fetch("/api/properties")
+      .then((res) => res.json())
+      .then((data) => setProperties(data))
+      .catch((err) => console.error("❌ Fetch failed:", err));
+  }, []);
+
+  const filtered = properties.filter((item) => {
+    const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
+    const matchStatus =
+      selectedStatus === "ทั้งหมด" || item.progressStatus === selectedStatus;
+    return matchId && matchStatus;
+  });
+
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentData = filtered.slice(
+    (page - 1) * itemsPerPage,
+    page * itemsPerPage
+  );
+
+  const handleDetailClick = (id: string) => {
+    setSelectedId(id);
+    setShowDetail(true);
+  };
+
   const handleLogin = () => {
-    if (username === "aaa" && password === "Hfc1234") {
+    if (username === "" && password === "") {
       setLoggedIn(true);
       setError("");
     } else {
@@ -73,22 +58,6 @@ export default function Home() {
     }
   };
 
-  const filtered = mockData.filter((item) => {
-    const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
-    const matchStatus = selectedStatus === "ทั้งหมด" || item.status === selectedStatus;
-    return matchId && matchStatus;
-  });
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const currentData = filtered.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
-  const handleDetailClick = (id: string) => {
-    setSelectedId(id);
-    setShowDetail(true);
-  };
-
-  // หน้า Login 
   if (!loggedIn) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
@@ -131,10 +100,8 @@ export default function Home() {
     );
   }
 
-  // หน้า Dashboard (ไม่มี Logo ตรงนี้)
   return (
     <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen p-10">
-      {/* Navbar กินเต็มหน้าจอ */}
       <DashboardNavbar
         searchId={searchId}
         onSearchIdChange={setSearchId}
@@ -145,7 +112,26 @@ export default function Home() {
       />
 
       <main className="max-w-6xl mx-auto px-6 py-6">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-white">รายการทรัพย์</h2>
+          <div className="flex gap-2">
+            <Link
+              href="/add"
+              className="bg-white text-black px-4 py-2 rounded-full font-medium"
+            >
+              + เพิ่มรายการ
+            </Link>
+            <Link
+              href="/manage"
+              className="bg-blue-500 text-white px-4 py-2 rounded-full font-medium"
+            >
+              จัดการรายการ
+            </Link>
+          </div>
+        </div>
+
         <PropertyGrid data={currentData} onDetailClick={handleDetailClick} />
+
         <div className="flex justify-center items-center gap-4 mt-6 text-white">
           <button
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
@@ -168,7 +154,12 @@ export default function Home() {
       </main>
 
       {showDetail && selectedId && (
-        <PropertyDetailModal property={mockDetail} onClose={() => setShowDetail(false)} />
+        <PropertyDetailModal
+          property={
+            properties.find((p) => p.id === selectedId) as PropertyDetail
+          }
+          onClose={() => setShowDetail(false)}
+        />
       )}
     </div>
   );

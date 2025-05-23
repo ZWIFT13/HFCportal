@@ -1,22 +1,19 @@
+// src/components/PropertyCard.tsx
+
 import Image from "next/image";
 import { Property } from "@/types/property";
 
 type Props = {
-  property: Property & { isNew?: boolean; images?: string[] };
+  property: Property;
   onClick: () => void;
 };
 
-/**
- * PropertyCard: แสดงการ์ดทรัพย์ใน Dashboard
- * - Overlay รูปภาพ
- * - Gradient ด้านล่างแสดง จังหวัด และ รหัสทรัพย์
- * - Bubble ด้านบนแสดงสถานะ และ NEW ถ้าเป็นทรัพย์ใหม่
- */
 export default function PropertyCard({ property, onClick }: Props) {
-  // กำหนด src ให้แน่ใจว่าเป็นเส้นทางเริ่มต้นด้วย '/'
   const imgSrc =
     property.images && property.images.length > 0
-      ? `/mock/${property.images[0]}`
+      ? property.images[0].startsWith("/")
+        ? property.images[0]
+        : `/uploads/${property.images[0]}`
       : `/mock/house${Math.floor(Math.random() * 4 + 1)}.jpg`;
 
   return (
@@ -33,11 +30,13 @@ export default function PropertyCard({ property, onClick }: Props) {
         className="object-cover w-full h-56"
       />
 
-      {/* Status & New Bubbles */}
+      {/* Status & NEW Badge */}
       <div className="absolute top-4 right-4 flex gap-2">
-        <span className="inline-flex items-center px-3 py-1 bg-white/80 text-black text-xs font-semibold rounded-full">
-          {property.status}
-        </span>
+        {property.progressStatus && (
+          <span className="inline-flex items-center px-3 py-1 bg-white/80 text-black text-xs font-semibold rounded-full">
+            {property.progressStatus}
+          </span>
+        )}
         {property.isNew && (
           <span className="inline-flex items-center px-3 py-1 bg-red-600 text-white text-xs font-semibold rounded-full">
             NEW
@@ -45,9 +44,11 @@ export default function PropertyCard({ property, onClick }: Props) {
         )}
       </div>
 
-      {/* Gradient Overlay with Text */}
+      {/* Gradient Overlay + Province/ID */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 flex flex-col justify-end">
-        <span className="text-sm text-white/80 font-medium">{property.province}</span>
+        {property.province && (
+          <span className="text-sm text-white/80 font-medium">{property.province}</span>
+        )}
         <h3 className="text-lg font-bold text-white">{property.id}</h3>
       </div>
     </div>
