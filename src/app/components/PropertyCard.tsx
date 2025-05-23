@@ -1,6 +1,5 @@
 // src/components/PropertyCard.tsx
 
-import Image from "next/image";
 import { Property } from "@/types/property";
 
 type Props = {
@@ -22,11 +21,9 @@ export default function PropertyCard({ property, onClick }: Props) {
       className="relative rounded-xl overflow-hidden shadow-lg group transition-all hover:scale-[1.02] hover:shadow-2xl cursor-pointer"
     >
       {/* Background Image */}
-      <Image
+      <img
         src={imgSrc}
         alt={`ภาพปกของ ${property.id}`}
-        width={400}
-        height={250}
         className="object-cover w-full h-56"
       />
 
@@ -47,7 +44,9 @@ export default function PropertyCard({ property, onClick }: Props) {
       {/* Gradient Overlay + Province/ID */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-4 flex flex-col justify-end">
         {property.province && (
-          <span className="text-sm text-white/80 font-medium">{property.province}</span>
+          <span className="text-sm text-white/80 font-medium">
+            {property.province}
+          </span>
         )}
         <h3 className="text-lg font-bold text-white">{property.id}</h3>
       </div>

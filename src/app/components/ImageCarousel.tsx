@@ -1,5 +1,6 @@
+// src/components/ImageCarousel.tsx
+
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 
 type Props = {
   images: string[];
@@ -44,21 +45,16 @@ export default function ImageCarousel({
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
         {images.map((src, idx) => {
-          const resolvedSrc = src.startsWith("/")
-            ? src
-            : `/uploads/${src}`;
-
+          const resolvedSrc = src.startsWith("/") ? src : `/uploads/${src}`;
           return (
             <div
               key={idx}
-              className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
+              className="inline-block w-full h-64 md:h-80 lg:h-96"
             >
-              <Image
+              <img
                 src={resolvedSrc}
                 alt={`ภาพ ${idx + 1}`}
-                fill
-                unoptimized // ✅ สำคัญมาก! เพื่อแสดงรูปจาก public/uploads ได้
-                className="object-cover"
+                className="object-cover w-full h-full"
               />
             </div>
           );

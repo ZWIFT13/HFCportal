@@ -95,8 +95,9 @@ export default function AddPage() {
         const err = await propRes.json();
         throw new Error(err.error || 'บันทึกข้อมูลไม่สำเร็จ');
       }
-      // 3. Navigate home on success
-      router.push('/dashboard');
+
+      // 3. Navigate back to main page on success
+      router.push('/');
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'เกิดข้อผิดพลาดไม่ทราบสาเหตุ';
       console.error('Error submitting form:', message);
@@ -112,7 +113,7 @@ export default function AddPage() {
         </h1>
         <form onSubmit={handleSubmit} className="space-y-4">
           {(Object.keys(form) as (keyof FormFields)[])
-            // เอา province กับ status ออก
+            // ไม่กรอง province, status ออกจากการสร้าง input
             .filter(key => !['province', 'status'].includes(key))
             .map(key => (
               <input
@@ -184,7 +185,7 @@ export default function AddPage() {
           <div className="flex gap-4 mt-4">
             <button
               type="button"
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/')}
               className="w-1/2 py-3 rounded-xl bg-red-500/80 text-white font-semibold hover:bg-red-600 transition"
             >
               ยกเลิก
