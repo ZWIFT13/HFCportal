@@ -1,28 +1,29 @@
 // src/app/api/upload/[filename]/route.ts
-import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import mime from 'mime-types';
+import { NextRequest, NextResponse } from "next/server";
+import { readFile } from "fs/promises";
+import { existsSync } from "fs";
+import path from "path";
+import mime from "mime-types";
 
-export const runtime = 'nodejs';
+export const runtime = "nodejs";
 
 export async function GET(
   _req: NextRequest,
   context: { params: { filename: string } }
 ) {
   const { filename } = context.params;
-  const filePath = path.join('/tmp/upload', filename);
+  const uploadDir = "/tmp/upload";
+  const filePath = path.join(uploadDir, filename);
 
   if (!existsSync(filePath)) {
-    return new NextResponse('Not found', { status: 404 });
+    return new NextResponse("Not found", { status: 404 });
   }
 
-  const buffer = await readFile(filePath);
-  const contentType = mime.lookup(filename) || 'application/octet-stream';
+  const data = await readFile(filePath);
+  const contentType = mime.lookup(filename) || "application/octet-stream";
 
-  return new NextResponse(buffer, {
+  return new NextResponse(data, {
     status: 200,
-    headers: { 'Content-Type': contentType },
+    headers: { "Content-Type": contentType },
   });
 }
