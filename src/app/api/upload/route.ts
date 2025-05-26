@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
     const files = form.getAll('images') as File[];
     const uploadDir = '/tmp/upload';
 
-    // สร้างโฟลเดอร์ถ้ายังไม่มี
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
@@ -26,14 +25,20 @@ export async function POST(request: NextRequest) {
         const filename = `${randomUUID()}.${ext}`;
         const filepath = path.join(uploadDir, filename);
         await writeFile(filepath, buffer);
-        // คืน URL ให้ client ดึงไฟล์ผ่าน GET route ด้านล่าง
         paths.push(`/api/upload/${filename}`);
       }
     }
 
     return NextResponse.json({ paths }, { status: 200 });
-  } catch (err: any) {
-    console.error('POST /api/upload error:', err);
-    return NextResponse.json({ error: err.message || 'Upload failed' }, { status: 500 });
+  } catch (err: unknown) {
+    // ปลอดภัยกว่า any
+    const message =
+      err instanceof Error
+        ? err.message
+        : typeof err === 'string'
+        ? err
+        : 'Upload failed';
+    console.error('POST /api/upload error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
