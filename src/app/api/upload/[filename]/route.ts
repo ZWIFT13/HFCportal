@@ -8,11 +8,11 @@ import path from 'path';
 import mime from 'mime-types';
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { filename: string } }
+  request: Request,
+  context: { params: { filename: string } }
 ) {
-  const { filename } = params;
-  const filePath = path.join('/tmp/uploads', filename);  // <-- ชื่อโฟลเดอร์ตรงกับ POST
+  const { filename } = context.params;
+  const filePath = path.join('/tmp/uploads', filename);
 
   if (!existsSync(filePath)) {
     return new NextResponse('Not found', { status: 404 });
