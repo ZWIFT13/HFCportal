@@ -9,9 +9,9 @@ export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { filename: string } }
+  { params }: { params: { filename: string } }   // <— ตรงนี้ต้อง destructure
 ) {
-  const { filename } = context.params;
+  const { filename } = params;
   const filePath = path.join('/tmp/upload', filename);
 
   if (!existsSync(filePath)) {
