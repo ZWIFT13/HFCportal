@@ -1,41 +1,32 @@
 // src/app/api/upload/[filename]/route.ts
-import { NextResponse } from 'next/server';
-import { readFile, access } from 'fs/promises';
-import { constants } from 'fs';
+import { NextRequest, NextResponse } from 'next/server';
+import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
 export const runtime = 'nodejs';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { filename: string } }
+  request: NextRequest,
+  context: { params: { filename: string } }
 ) {
-  // Decode and sanitize the filename
-  const rawName = decodeURIComponent(params.filename);
-  const safeName = path.basename(rawName);
+  const { filename } = context.params;
+  const uploadDir = '/tmp/upload';
+  const filePath = path.join(uploadDir, filename);
 
-  // Define the upload directory (must match POST route)
-  const uploadDir = path.resolve(process.cwd(), 'tmp', 'upload');
-  const filePath = path.join(uploadDir, safeName);
-
-  // Check file existence asynchronously
-  try {
-    await access(filePath, constants.F_OK);
-  } catch {
+  if (!existsSync(filePath)) {
     return new NextResponse('Not Found', { status: 404 });
   }
 
-  // Read the file
-  const buffer = await readFile(filePath);
-  const contentType = mime.lookup(safeName) || 'application/octet-stream';
+  const fileBuffer = await readFile(filePath);
+  const contentType = mime.lookup(filename) || 'application/octet-stream';
 
-  // Return the file with proper headers
-  return new NextResponse(buffer, {
+  return new NextResponse(fileBuffer, {
     status: 200,
     headers: {
       'Content-Type': contentType,
-      'Content-Length': buffer.byteLength.toString(),
+      'Cache-Control': 'public, max-age=31536000, immutable',
     },
   });
 }
