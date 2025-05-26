@@ -12,21 +12,17 @@ export async function GET(
   context: { params: { filename: string } }
 ) {
   const { filename } = context.params;
-  const uploadDir = '/tmp/upload';
-  const filePath = path.join(uploadDir, filename);
+  const filePath = path.join('/tmp/upload', filename);
 
   if (!existsSync(filePath)) {
-    return new NextResponse('Not Found', { status: 404 });
+    return new NextResponse('Not found', { status: 404 });
   }
 
-  const fileBuffer = await readFile(filePath);
+  const buffer = await readFile(filePath);
   const contentType = mime.lookup(filename) || 'application/octet-stream';
 
-  return new NextResponse(fileBuffer, {
+  return new NextResponse(buffer, {
     status: 200,
-    headers: {
-      'Content-Type': contentType,
-      'Cache-Control': 'public, max-age=31536000, immutable',
-    },
+    headers: { 'Content-Type': contentType },
   });
 }

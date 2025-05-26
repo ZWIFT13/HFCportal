@@ -23,15 +23,13 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
         const filename = `${randomUUID()}.${ext}`;
-        const filepath = path.join(uploadDir, filename);
-        await writeFile(filepath, buffer);
+        await writeFile(path.join(uploadDir, filename), buffer);
         paths.push(`/api/upload/${filename}`);
       }
     }
 
     return NextResponse.json({ paths }, { status: 200 });
   } catch (err: unknown) {
-    // ปลอดภัยกว่า any
     const message =
       err instanceof Error
         ? err.message
