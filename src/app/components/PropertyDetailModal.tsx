@@ -10,9 +10,13 @@ type Props = {
 };
 
 export default function PropertyDetailModal({ property, onClose }: Props) {
+  // ถ้า path เดิมเริ่มต้นด้วย /uploads/ เลย ไม่ต้องเติมซ้ำ
   const resolvedImages = (property.images || []).map((img) =>
-    img.startsWith("/") ? img : `/uploads/${img}`
+    img.startsWith("/uploads/") ? img : `/uploads/${img}`
   );
+
+  // ลองดูในคอนโซลก่อน render
+  console.log("resolvedImages:", resolvedImages);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-3xl flex items-center justify-center p-6">

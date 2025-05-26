@@ -45,30 +45,20 @@ export default function ImageCarousel({
         className="whitespace-nowrap transition-transform duration-500"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {images.map((src, idx) => {
-          // ใน props images ควรได้มาเป็น "/api/upload/xxxxx.jpg"
-          // ถ้าได้เป็นชื่อไฟล์เฉยๆ ก็เติม prefix ให้เป็น "/api/upload/xxx"
-          const resolvedSrc = src.startsWith("/api/upload")
-            ? src
-            : src.startsWith("/")
-            ? src
-            : `/api/upload/${src}`;
-
-          return (
-            <div
-              key={idx}
-              className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
-            >
-              <Image
-                src={resolvedSrc}
-                alt={`ภาพ ${idx + 1}`}
-                fill
-                className="object-cover"
-                unoptimized
-              />
-            </div>
-          );
-        })}
+        {images.map((src, idx) => (
+          <div
+            key={idx}
+            className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
+          >
+            <Image
+              src={src}
+              alt={`ภาพ ${idx + 1}`}
+              fill
+              className="object-cover"
+              unoptimized
+            />
+          </div>
+        ))}
       </div>
 
       {/* Prev / Next Buttons */}
