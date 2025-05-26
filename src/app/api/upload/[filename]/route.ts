@@ -1,11 +1,11 @@
 // src/app/api/upload/[filename]/route.ts
+export const runtime = "nodejs";
+
 import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import mime from "mime-types";
-
-export const runtime = "nodejs";
 
 export async function GET(
   request: Request,
@@ -25,10 +25,10 @@ export async function GET(
     return new NextResponse("Not found", { status: 404 });
   }
 
-  const data = await readFile(filePath);
+  const fileBuffer = await readFile(filePath);
   const contentType = mime.lookup(filename) || "application/octet-stream";
 
-  return new NextResponse(data, {
+  return new NextResponse(fileBuffer, {
     status: 200,
     headers: {
       "Content-Type": contentType,
