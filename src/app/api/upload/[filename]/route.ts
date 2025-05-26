@@ -1,7 +1,7 @@
 // src/app/api/upload/[filename]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile } from 'fs/promises';
-import { existsSync } from 'fs';
+import { readFile, access } from 'fs/promises';
+import { constants } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
@@ -9,23 +9,32 @@ export const runtime = 'nodejs';
 
 export async function GET(
   request: NextRequest,
-  context: { params: { filename: string } }
+  { params }: { params: { filename: string } }  // ← เปลี่ยนตรงนี้
 ) {
-  const { filename } = context.params;
-  const uploadDir = '/tmp/upload';
-  const filePath = path.join(uploadDir, filename);
+  // decode & sanitize filename
+  const rawName = decodeURIComponent(params.filename);
+  const safeName = path.basename(rawName);
 
-  if (!existsSync(filePath)) {
+  // absolute path to upload dir
+  const uploadDir = path.resolve(process.cwd(), 'tmp', 'upload');
+  const filePath = path.join(uploadDir, safeName);
+
+  // check existence
+  try {
+    await access(filePath, constants.F_OK);
+  } catch {
     return new NextResponse('Not Found', { status: 404 });
   }
 
+  // read & respond
   const buffer = await readFile(filePath);
-  const contentType = mime.lookup(filename) || 'application/octet-stream';
+  const contentType = mime.lookup(safeName) || 'application/octet-stream';
 
   return new NextResponse(buffer, {
     status: 200,
     headers: {
       'Content-Type': contentType,
+      'Content-Length': buffer.byteLength.toString(),
     },
   });
 }
