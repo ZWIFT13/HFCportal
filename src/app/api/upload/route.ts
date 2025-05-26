@@ -1,18 +1,22 @@
 // src/app/api/upload/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+
+import { NextResponse } from 'next/server';
 import { mkdir, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
-export const runtime = 'nodejs';
-
-export async function POST(request: NextRequest) {
+/**
+ * รับ POST form-data ชื่อ fields “images”
+ * เขียนไฟล์ลง /tmp/upload แล้วคืน paths เป็น `/api/upload/{filename}`
+ */
+export async function POST(request: Request) {
   try {
     const form = await request.formData();
     const files = form.getAll('images') as File[];
-    const uploadDir = '/tmp/upload';
 
+    const uploadDir = '/tmp/upload';
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
@@ -20,23 +24,17 @@ export async function POST(request: NextRequest) {
     const paths: string[] = [];
     for (const file of files) {
       if (file.size > 0) {
-        const buffer = Buffer.from(await file.arrayBuffer());
+        const buf = Buffer.from(await file.arrayBuffer());
         const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
         const filename = `${randomUUID()}.${ext}`;
-        await writeFile(path.join(uploadDir, filename), buffer);
+        await writeFile(path.join(uploadDir, filename), buf);
         paths.push(`/api/upload/${filename}`);
       }
     }
 
-    return NextResponse.json({ paths }, { status: 200 });
-  } catch (err: unknown) {
-    const message =
-      err instanceof Error
-        ? err.message
-        : typeof err === 'string'
-        ? err
-        : 'Upload failed';
-    console.error('POST /api/upload error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ paths });
+  } catch (err) {
+    console.error('POST /api/upload error:', err);
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }

@@ -1,15 +1,19 @@
 // src/app/api/upload/[filename]/route.ts
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
-export const runtime = 'nodejs';
-
+/**
+ * รับ GET /api/upload/{filename}
+ * อ่านไฟล์จาก /tmp/upload/{filename} แล้วส่งกลับพร้อม Content-Type
+ */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { filename: string } }   // <— ตรงนี้ต้อง destructure
+  { params }: { params: { filename: string } }
 ) {
   const { filename } = params;
   const filePath = path.join('/tmp/upload', filename);
