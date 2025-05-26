@@ -46,7 +46,14 @@ export default function ImageCarousel({
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
         {images.map((src, idx) => {
-          const resolvedSrc = src.startsWith("/") ? src : `/uploads/${src}`;
+          // ใน props images ควรได้มาเป็น "/api/upload/xxxxx.jpg"
+          // ถ้าได้เป็นชื่อไฟล์เฉยๆ ก็เติม prefix ให้เป็น "/api/upload/xxx"
+          const resolvedSrc = src.startsWith("/api/upload")
+            ? src
+            : src.startsWith("/")
+            ? src
+            : `/api/upload/${src}`;
+
           return (
             <div
               key={idx}
