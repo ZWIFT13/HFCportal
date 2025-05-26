@@ -1,11 +1,10 @@
-// src/app/api/upload/route.ts
-export const runtime = 'nodejs';
-
 import { NextResponse } from 'next/server';
 import { mkdir, writeFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
+
+export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
   try {
@@ -24,7 +23,6 @@ export async function POST(request: Request) {
         const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
         const filename = `${randomUUID()}.${ext}`;
         await writeFile(path.join(uploadDir, filename), buffer);
-        // คืน path ให้ลูกค้าดึงรูปผ่าน GET route
         paths.push(`/api/upload/${filename}`);
       }
     }

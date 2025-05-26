@@ -1,6 +1,6 @@
 // src/components/PropertyCard.tsx
 
-import { Property } from "@/types/property";
+import { Property } from "src/app/types/property";
 
 type Props = {
   property: Property;

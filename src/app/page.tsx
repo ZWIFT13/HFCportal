@@ -27,11 +27,11 @@ export default function Home() {
   useEffect(() => {
     fetch("/api/properties")
       .then((res) => res.json())
-      .then((data) => setProperties(data))
+      .then((data: Property[]) => setProperties(data))
       .catch((err) => console.error("❌ Fetch failed:", err));
   }, []);
 
-  // ใช้ item.status แทน progressStatus
+  // Filter by ID and status
   const filtered = properties.filter((item) => {
     const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
     const matchStatus =
