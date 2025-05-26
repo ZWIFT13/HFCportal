@@ -13,15 +13,13 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "baseUrl": ".",               // ✅ เพิ่มให้ครบ
+    "baseUrl": ".",                  
     "paths": {
-      "@/*": ["src/app/*"]           // ✅ ให้ Next.js รู้จัก alias @/
-    }
+      "@/*": ["src/*"]               
+    },
+    "plugins": [
+      { "name": "next" }
+    ]
   },
   "include": [
     "next-env.d.ts",

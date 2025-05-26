@@ -2,12 +2,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Logo from "@/components/Logo";
-import DashboardNavbar from "@/components/DashboardNavbar";
-import PropertyDetailModal from "@/components/PropertyDetailModal";
-import PropertyGrid from "@/components/DashboardGrid";
+import Logo from "src/app/components/Logo";
+import DashboardNavbar from "src/app/components/DashboardNavbar";
+import PropertyDetailModal from "src/app/components/PropertyDetailModal";
+import PropertyGrid from "src/app/components/DashboardGrid";
 import Link from "next/link";
-import { Property, PropertyDetail } from "@/types/property";
+import { Property, PropertyDetail } from "src/app/types/property";
 
 export default function Home() {
   const [loggedIn, setLoggedIn] = useState(false);
