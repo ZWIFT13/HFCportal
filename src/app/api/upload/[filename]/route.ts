@@ -1,5 +1,5 @@
 // src/app/api/upload/[filename]/route.ts
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -8,15 +8,15 @@ import mime from 'mime-types';
 export const runtime = 'nodejs';
 
 export async function GET(
-  request: Request,
-  { params }: { params: { filename: string } }
+  request: NextRequest,
+  context: { params: { filename: string } }
 ) {
-  const { filename } = params;
+  const { filename } = context.params;
   const uploadDir = '/tmp/upload';
   const filePath = path.join(uploadDir, filename);
 
   if (!existsSync(filePath)) {
-    return new NextResponse('Not found', { status: 404 });
+    return new NextResponse('Not Found', { status: 404 });
   }
 
   const buffer = await readFile(filePath);
@@ -24,6 +24,8 @@ export async function GET(
 
   return new NextResponse(buffer, {
     status: 200,
-    headers: { 'Content-Type': contentType },
+    headers: {
+      'Content-Type': contentType,
+    },
   });
 }
