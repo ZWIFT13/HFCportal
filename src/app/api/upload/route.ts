@@ -7,10 +7,6 @@ import { existsSync } from 'fs';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
-/**
- * รับ POST form-data ชื่อ fields “images”
- * เขียนไฟล์ลง /tmp/upload แล้วคืน paths เป็น `/api/upload/{filename}`
- */
 export async function POST(request: Request) {
   try {
     const form = await request.formData();
@@ -34,7 +30,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ paths });
   } catch (err) {
-    console.error('POST /api/upload error:', err);
+    console.error(err);
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
   }
 }
