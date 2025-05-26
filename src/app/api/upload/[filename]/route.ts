@@ -1,18 +1,18 @@
 // src/app/api/upload/[filename]/route.ts
-export const runtime = 'nodejs';
-
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
+export const runtime = 'nodejs';
+
 export async function GET(
-  request: Request,
+  _req: NextRequest,
   context: { params: { filename: string } }
 ) {
   const { filename } = context.params;
-  const filePath = path.join('/tmp/uploads', filename);
+  const filePath = path.join('/tmp/upload', filename);
 
   if (!existsSync(filePath)) {
     return new NextResponse('Not found', { status: 404 });
