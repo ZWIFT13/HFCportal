@@ -1,5 +1,5 @@
 // src/app/api/upload/[filename]/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
@@ -8,10 +8,16 @@ import mime from "mime-types";
 export const runtime = "nodejs";
 
 export async function GET(
-  _req: NextRequest,
-  context: { params: { filename: string } }
+  request: Request,
+  {
+    params,
+  }: {
+    params: {
+      filename: string;
+    };
+  }
 ) {
-  const { filename } = context.params;
+  const { filename } = params;
   const uploadDir = "/tmp/upload";
   const filePath = path.join(uploadDir, filename);
 
@@ -24,6 +30,8 @@ export async function GET(
 
   return new NextResponse(data, {
     status: 200,
-    headers: { "Content-Type": contentType },
+    headers: {
+      "Content-Type": contentType,
+    },
   });
 }
