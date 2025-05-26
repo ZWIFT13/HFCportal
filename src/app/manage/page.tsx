@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Property } from '@/types/property';
+import { Property } from 'src/app/types/property';
 import Link from 'next/link';
 
 export default function ManagePage() {

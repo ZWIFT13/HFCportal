@@ -1,6 +1,6 @@
 // src/components/PropertyDetailModal.tsx
 
-import { PropertyDetail } from "@/types/property";
+import { PropertyDetail } from "src/app/types/property";
 import ImageCarousel from "./ImageCarousel";
 import MapEmbed from "./MapEmbed";
 

@@ -1,4 +1,4 @@
-import { Property } from "@/types/property";
+import { Property } from "src/app/types/property";
 
 type Props = {
   data: Property[];

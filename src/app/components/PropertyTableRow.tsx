@@ -1,6 +1,6 @@
 // src/app/components/PropertyTableRow.tsx
 
-import { Property } from "@/types/property";
+import { Property } from "src/app/types/property";
 import Link from "next/link";
 
 type Props = {
