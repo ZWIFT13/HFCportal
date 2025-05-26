@@ -7,9 +7,18 @@ import { existsSync } from 'fs';
 import path from 'path';
 import mime from 'mime-types';
 
-export async function GET(request: Request, context: any) {
-  // อ่าน filename จาก context.params
-  const filename = context.params.filename as string;
+// กำหนด interface ให้ context.params ชัดเจน
+interface Context {
+  params: {
+    filename: string;
+  };
+}
+
+export async function GET(
+  _request: Request,
+  context: Context
+) {
+  const { filename } = context.params;
   const filePath = path.join('/tmp/upload', filename);
 
   if (!existsSync(filePath)) {

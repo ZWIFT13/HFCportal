@@ -10,7 +10,8 @@ import { randomUUID } from 'crypto';
 export async function POST(request: Request) {
   try {
     const form = await request.formData();
-    const files = form.getAll('images') as File[];
+    // file inputs มาในรูป File
+    const files = form.getAll('images') as Blob[]; 
 
     const uploadDir = '/tmp/upload';
     if (!existsSync(uploadDir)) {
@@ -19,18 +20,21 @@ export async function POST(request: Request) {
 
     const paths: string[] = [];
     for (const file of files) {
-      if (file.size > 0) {
-        const buf = Buffer.from(await file.arrayBuffer());
-        const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
-        const filename = `${randomUUID()}.${ext}`;
-        await writeFile(path.join(uploadDir, filename), buf);
-        paths.push(`/api/upload/${filename}`);
-      }
+      // file เป็น Blob แต่ใน runtime มันคือ Web File
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const ext = (file instanceof File
+        ? file.name.split('.').pop()
+        : 'bin'
+      )?.toLowerCase() ?? 'bin';
+      const filename = `${randomUUID()}.${ext}`;
+      await writeFile(path.join(uploadDir, filename), buffer);
+      paths.push(`/api/upload/${filename}`);
     }
 
     return NextResponse.json({ paths });
   } catch (err) {
-    console.error(err);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Upload failed';
+    console.error('POST /api/upload error:', message);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
