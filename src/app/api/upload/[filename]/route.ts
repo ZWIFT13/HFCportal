@@ -9,10 +9,10 @@ import mime from 'mime-types';
 
 export async function GET(
   _req: Request,
-  { params }: { params: Promise<{ filename: string }> }
+  { params }: { params: { filename: string } }
 ) {
-  const { filename } = await params;
-  const filePath = path.join('/tmp/upload', filename);
+  const { filename } = params;
+  const filePath = path.join('/tmp/uploads', filename);  // <-- ชื่อโฟลเดอร์ตรงกับ POST
 
   if (!existsSync(filePath)) {
     return new NextResponse('Not found', { status: 404 });

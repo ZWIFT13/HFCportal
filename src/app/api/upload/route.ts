@@ -12,8 +12,8 @@ export async function POST(request: Request) {
     const form = await request.formData();
     const files = form.getAll('images') as File[];
 
-    // โฟลเดอร์ชั่วคราวบน Vercel
-    const uploadDir = '/tmp/upload';
+    // โฟลเดอร์ชั่วคราวบน Vercel (ให้ตรงกับ GET route ของคุณ)
+    const uploadDir = '/tmp/uploads';
     if (!existsSync(uploadDir)) {
       await mkdir(uploadDir, { recursive: true });
     }
@@ -21,19 +21,25 @@ export async function POST(request: Request) {
     const paths: string[] = [];
     for (const file of files) {
       if (file.size > 0) {
-        const buf = Buffer.from(await file.arrayBuffer());
+        // อ่าน buffer จาก File API
+        const buffer = Buffer.from(await file.arrayBuffer());
+        // หานามสกุล
         const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
-        const name = `${randomUUID()}.${ext}`;
-        await writeFile(path.join(uploadDir, name), buf);
-        // คืน URL ให้ client โหลดต่อจาก GET route
-        paths.push(`/api/upload/${name}`);
+        const filename = `${randomUUID()}.${ext}`;
+        const filePath = path.join(uploadDir, filename);
+
+        // เขียนไฟล์ขึ้นไป
+        await writeFile(filePath, buffer);
+
+        // ส่งกลับเป็น URL GET route
+        paths.push(`/api/upload/${filename}`);
       }
     }
 
     return NextResponse.json({ paths }, { status: 200 });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Upload failed';
-    console.error('POST /api/upload error:', message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Upload failed';
+    console.error('❌ POST /api/upload error:', message);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
