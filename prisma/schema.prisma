@@ -9,18 +9,22 @@ datasource db {
 }
 
 model Property {
-  id             String   @id @default(uuid())
+  id             String    @id @default(uuid())
   ownerName      String
   ownerPhone     String
   propertyType   String?
   agentName      String?
-  status         String?
+  status         String?            // สถานะ เช่น "pending", "in_progress", "complete"
   investor       String?
   estimatedPrice Int?
   approvedPrice  Int?
   locationLink   String?
   mapEmbedLink   String?
   province       String?
-  images         Json     @default("[]")
-  createdAt      DateTime @default(now())
+  imageUrls      String[]  @default([])   // เก็บลิสต์ URL ของรูป
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt     // จะอัพเดตทุกครั้งที่ record ถูกเปลี่ยน
+
+  @@index([status])
+  @@index([province])
 }

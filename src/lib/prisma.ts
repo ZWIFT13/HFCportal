@@ -1,14 +1,21 @@
-// lib/prisma.ts
+/* eslint-disable no-var */
 import { PrismaClient } from '@prisma/client';
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+// ประกาศตัวแปร prisma บน global สำหรับ caching
+declare global {
+  var prisma: PrismaClient | undefined;
+}
 
-export const prisma =
-  globalForPrisma.prisma ??
+// ใช้ global.prisma เพื่อหลีกเลี่ยงการสร้างใหม่ซ้ำใน dev mode
+const prismaClient =
+  global.prisma ??
   new PrismaClient({
     log: ['query'],
   });
 
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+// ใน dev ให้เก็บ instance ไว้บน global
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prismaClient;
+}
+
+export default prismaClient;

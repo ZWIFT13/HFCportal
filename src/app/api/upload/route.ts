@@ -1,36 +1,66 @@
-import { NextResponse } from 'next/server';
-import { mkdir, writeFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
+import { NextResponse, NextRequest } from 'next/server';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { randomUUID } from 'crypto';
+import prisma from '@/lib/prisma';
+
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+const BUCKET = process.env.S3_BUCKET!;
 
 export const runtime = 'nodejs';
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
     const form = await request.formData();
-    const files = form.getAll('images') as File[];
-
-    const uploadDir = path.join('/tmp', 'upload');
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true });
+    const propertyId = form.get('propertyId');
+    if (typeof propertyId !== 'string') {
+      return NextResponse.json({ error: 'Missing propertyId' }, { status: 400 });
     }
 
-    const paths: string[] = [];
+    const files = form.getAll('images') as File[];
+    const uploadedUrls: string[] = [];
+
     for (const file of files) {
       if (file.size > 0) {
         const buffer = Buffer.from(await file.arrayBuffer());
         const ext = (file.name.split('.').pop() || 'bin').toLowerCase();
-        const filename = `${randomUUID()}.${ext}`;
-        await writeFile(path.join(uploadDir, filename), buffer);
-        paths.push(`/api/upload/${filename}`);
+        const key = `properties/${propertyId}/${randomUUID()}.${ext}`;
+
+        await s3.send(new PutObjectCommand({
+          Bucket: BUCKET,
+          Key: key,
+          Body: buffer,
+          ContentType: file.type,
+          ACL: 'public-read',
+        }));
+
+        const url = `https://${BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+        uploadedUrls.push(url);
+
+        await prisma.property.update({
+          where: { id: propertyId },
+          data: { imageUrls: { push: url } },
+        });
       }
     }
 
-    return NextResponse.json({ paths }, { status: 200 });
+    return NextResponse.json({ urls: uploadedUrls }, { status: 200 });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Upload failed';
-    console.error('POST /api/upload error:', message);
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error('Upload error:', err);
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : typeof err === 'string'
+          ? err
+          : 'Upload failed';
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
   }
 }
