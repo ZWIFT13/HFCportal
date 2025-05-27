@@ -45,20 +45,29 @@ export default function ImageCarousel({
         className="whitespace-nowrap transition-transform duration-500"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
-        {images.map((src, idx) => (
-          <div
-            key={idx}
-            className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
-          >
-            <Image
-              src={src}
-              alt={`ภาพ ${idx + 1}`}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </div>
-        ))}
+        {images.map((src, idx) => {
+          // ให้แน่ใจว่าเส้นทางชี้ไปยัง API upload
+          const actualSrc = src.startsWith("/api/upload")
+            ? src
+            : src.startsWith("/")
+            ? `/api/upload${src}`
+            : `/api/upload/${src}`;
+
+          return (
+            <div
+              key={idx}
+              className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
+            >
+              <Image
+                src={actualSrc}
+                alt={`ภาพ ${idx + 1}`}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+          );
+        })}
       </div>
 
       {/* Prev / Next Buttons */}

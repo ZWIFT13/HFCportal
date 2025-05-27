@@ -10,13 +10,14 @@ type Props = {
 };
 
 export default function PropertyDetailModal({ property, onClose }: Props) {
-  // ถ้า path เดิมเริ่มต้นด้วย /uploads/ เลย ไม่ต้องเติมซ้ำ
+  // เปลี่ยนให้ชี้ไปที่ API route แทน /uploads
   const resolvedImages = (property.images || []).map((img) =>
-    img.startsWith("/uploads/") ? img : `/uploads/${img}`
+    img.startsWith("/api/upload")
+      ? img
+      : img.startsWith("/")
+      ? `/api/upload${img}`
+      : `/api/upload/${img}`
   );
-
-  // ลองดูในคอนโซลก่อน render
-  console.log("resolvedImages:", resolvedImages);
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-3xl flex items-center justify-center p-6">

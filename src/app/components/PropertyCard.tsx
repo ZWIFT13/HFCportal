@@ -8,12 +8,16 @@ type Props = {
 };
 
 export default function PropertyCard({ property, onClick }: Props) {
-  const imgSrc =
-    property.images && property.images.length > 0
-      ? property.images[0].startsWith("/")
-        ? property.images[0]
-        : `/uploads/${property.images[0]}`
-      : `/mock/house${Math.floor(Math.random() * 4 + 1)}.jpg`;
+  // ตั้ง default เป็น mock image
+  let imgSrc = `/mock/house${Math.floor(Math.random() * 4 + 1)}.jpg`;
+
+  if (property.images?.length) {
+    const first = property.images[0];
+    // ถ้าเก็บมาเป็น full path ของ API route แล้ว ก็ใช้เลย
+    imgSrc = first.startsWith("/api/upload")
+      ? first
+      : `/api/upload/${first}`;
+  }
 
   return (
     <div
