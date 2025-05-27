@@ -1,0 +1,37 @@
+// prisma/schema.prisma
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["dataProxy"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Property {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Text
+  ownerName      String
+  ownerPhone     String
+  propertyType   String?
+  agentName      String?
+  status         String?
+  investor       String?
+  estimatedPrice Int?
+  approvedPrice  Int?
+  locationLink   String?
+  mapEmbedLink   String?
+  province       String?
+  images         Image[]   @relation("PropertyImages")
+  createdAt      DateTime  @default(now())
+}
+
+model Image {
+  id          String    @id @default(uuid()) @db.Uuid
+  url         String
+  altText     String?
+  property    Property  @relation("PropertyImages", fields: [propertyId], references: [id])
+  propertyId  String    @db.Text
+  uploadedAt  DateTime  @default(now())
+}
