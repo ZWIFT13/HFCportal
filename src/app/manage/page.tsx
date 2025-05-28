@@ -1,10 +1,11 @@
 // src/app/manage/page.tsx
 'use client';
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase";
-import { Property } from "@/app/types/property";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabaseClient';
+import { Property, PropertyDetail } from '@/app/types/property';
+import EditPropertyModal from '@/app/components/EditPropertyModal';
 
 interface DBPropertyRow {
   id: string;
@@ -26,129 +27,148 @@ interface DBPropertyRow {
 export default function ManagePage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<PropertyDetail | null>(null);
 
-  const fetchProperties = async () => {
+  async function fetchProperties() {
     setLoading(true);
-    // ให้ระบุทั้งสอง generic type: ชื่อตาราง กับรูปทรง row
     const { data, error } = await supabase
-      .from<'properties', DBPropertyRow>("properties")
-      .select("*, images(url)")
-      .order("created_at", { ascending: false });
+      .from<'properties', DBPropertyRow>('properties')
+      .select('*, images(url)')
+      .order('created_at', { ascending: false });
 
     if (error) {
-      console.error("❌ โหลดข้อมูลล้มเหลว:", error.message);
-      alert("โหลดข้อมูลไม่สำเร็จ");
+      alert('โหลดข้อมูลไม่สำเร็จ');
+      setProperties([]);
     } else if (data) {
-      const mapped = data.map((row) => ({
-        id: row.id,
-        ownerName: row.owner_name,
-        ownerPhone: row.owner_phone,
-        propertyType: row.property_type ?? undefined,
-        agentName: row.agent_name ?? undefined,
-        status: row.status ?? undefined,
-        investor: row.investor ?? undefined,
-        estimatedPrice: row.estimated_price ?? undefined,
-        approvedPrice: row.approved_price ?? undefined,
-        locationLink: row.location_link ?? undefined,
-        mapEmbedLink: row.map_embed_link ?? undefined,
-        province: row.province ?? undefined,
-        createdAt: row.created_at,
-        // ระบุ type ให้ img เพื่อหลีกเลี่ยง any
-        images: row.images.map((img: { url: string }) => img.url),
+      const mapped = data.map((r: DBPropertyRow) => ({
+        id: r.id,
+        ownerName: r.owner_name,
+        ownerPhone: r.owner_phone,
+        propertyType: r.property_type ?? undefined,
+        agentName: r.agent_name ?? undefined,
+        status: r.status ?? undefined,
+        investor: r.investor ?? undefined,
+        estimatedPrice: r.estimated_price ?? undefined,
+        approvedPrice: r.approved_price ?? undefined,
+        locationLink: r.location_link ?? undefined,
+        mapEmbedLink: r.map_embed_link ?? undefined,
+        province: r.province ?? undefined,
+        createdAt: r.created_at,
+        images: r.images.map((img: { url: string }) => img.url),
       }));
       setProperties(mapped);
     }
-
     setLoading(false);
-  };
+  }
 
   useEffect(() => {
     fetchProperties();
   }, []);
 
-  const handleDelete = async (id: string) => {
+  async function handleDelete(id: string) {
     if (!confirm(`ยืนยันลบรายการ ${id} หรือไม่?`)) return;
-
-    const { error } = await supabase
-      .from("properties")
-      .delete()
-      .eq("id", id);
-
-    if (error) {
-      console.error("❌ ลบไม่สำเร็จ:", error.message);
-      alert("ลบไม่สำเร็จ");
-    } else {
-      fetchProperties();
+    const res = await fetch(`/api/properties/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      await fetchProperties();
+      return;
     }
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-800 to-black text-white">
-        กำลังโหลดข้อมูล...
-      </div>
-    );
+    let errorMessage = `${res.status} ${res.statusText}`;
+    try {
+      const json = await res.json();
+      if (json.error) errorMessage = json.error;
+    } catch {}
+    alert('ลบไม่สำเร็จ: ' + errorMessage);
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">จัดการรายการทรัพย์</h1>
-          <Link
-            href="/"
-            className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-semibold shadow transition"
-          >
-            ← กลับหน้าหลัก
-          </Link>
-        </div>
+    <>
+      {editing && (
+        <EditPropertyModal
+          property={editing}
+          onClose={() => {
+            setEditing(null);
+            fetchProperties();
+          }}
+        />
+      )}
 
-        <table className="w-full table-auto bg-white/10 rounded-xl overflow-hidden">
-          <thead className="bg-white/20 text-white text-sm">
-            <tr>
-              <th className="px-4 py-2">รหัส</th>
-              <th className="px-4 py-2">เจ้าของ</th>
-              <th className="px-4 py-2">เบอร์</th>
-              <th className="px-4 py-2">ประเภท</th>
-              <th className="px-4 py-2">สถานะ</th>
-              <th className="px-4 py-2">จัดการ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {properties.length > 0 ? (
-              properties.map((p) => (
-                <tr key={p.id} className="border-t border-white/10 text-sm">
-                  <td className="px-4 py-2">{p.id}</td>
-                  <td className="px-4 py-2">{p.ownerName}</td>
-                  <td className="px-4 py-2">{p.ownerPhone}</td>
-                  <td className="px-4 py-2">{p.propertyType ?? "-"}</td>
-                  <td className="px-4 py-2">{p.status ?? "-"}</td>
-                  <td className="px-4 py-2 flex gap-2">
-                    <button
-                      className="px-3 py-1 rounded-full text-xs bg-yellow-500 text-black"
-                      onClick={() => alert("ยังไม่เปิดหน้าแก้ไข")}
-                    >
-                      แก้ไข
-                    </button>
-                    <button
-                      className="px-3 py-1 rounded-full text-xs bg-red-600 text-white"
-                      onClick={() => handleDelete(p.id)}
-                    >
-                      ลบ
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={6} className="text-center py-4 text-white/70">
-                  ไม่มีรายการทรัพย์
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+      <div className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black text-white p-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-3xl font-bold">จัดการรายการทรัพย์</h1>
+            <Link
+              href="/"
+              className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-semibold shadow transition"
+            >
+              ← กลับหน้าหลัก
+            </Link>
+          </div>
+          {loading ? (
+            <div className="py-12 text-center text-lg">กำลังโหลดข้อมูล...</div>
+          ) : (
+            <div className="rounded-xl overflow-x-auto bg-white/10">
+              <table className="min-w-[800px] w-full table-fixed border-separate border-spacing-0">
+                <colgroup>
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '18%' }} />
+                  <col style={{ width: '19%' }} />
+                  <col style={{ width: '16%' }} />
+                  <col style={{ width: '17%' }} />
+                  <col style={{ width: '16%' }} />
+                </colgroup>
+                <thead>
+                  <tr className="bg-white/20">
+                    <th className="px-4 py-3 text-left font-semibold">รหัส</th>
+                    <th className="px-4 py-3 text-left font-semibold">เจ้าของ</th>
+                    <th className="px-4 py-3 text-left font-semibold">เบอร์</th>
+                    <th className="px-4 py-3 text-left font-semibold">ประเภท</th>
+                    <th className="px-4 py-3 text-left font-semibold">สถานะ</th>
+                    <th className="px-4 py-3 text-center font-semibold">จัดการ</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {properties.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-gray-400">
+                        ไม่พบรายการ
+                      </td>
+                    </tr>
+                  ) : (
+                    properties.map((p) => (
+                      <tr
+                        key={p.id}
+                        className="odd:bg-white/5 even:bg-white/10 hover:bg-white/20 transition"
+                      >
+                        <td className="px-4 py-3 align-middle">{p.id}</td>
+                        <td className="px-4 py-3 align-middle">{p.ownerName}</td>
+                        <td className="px-4 py-3 align-middle">{p.ownerPhone}</td>
+                        <td className="px-4 py-3 align-middle">{p.propertyType ?? '-'}</td>
+                        <td className="px-4 py-3 align-middle">{p.status ?? '-'}</td>
+                        <td className="px-4 py-3 align-middle">
+                          <div className="flex justify-center gap-2">
+                            <button
+                              className="px-4 py-1 rounded-full text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-semibold transition"
+                              onClick={() => setEditing(p as PropertyDetail)}
+                            >
+                              แก้ไข
+                            </button>
+                            <button
+                              className="px-4 py-1 rounded-full text-xs bg-red-600 hover:bg-red-500 text-white font-semibold transition"
+                              onClick={() => handleDelete(p.id)}
+                            >
+                              ลบ
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }

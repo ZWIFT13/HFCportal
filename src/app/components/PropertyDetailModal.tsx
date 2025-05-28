@@ -12,9 +12,10 @@ type Props = {
 
 export default function PropertyDetailModal({ property, onClose }: Props) {
   // Supabase Storage คืน full URLs มาแล้ว จึงใช้ตรงๆ
-  const resolvedImages = property.images && property.images.length > 0
-    ? property.images
-    : [];
+  const resolvedImages: string[] =
+    property.images && property.images.length > 0
+      ? property.images
+      : [];
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-3xl flex items-center justify-center p-6">
@@ -65,17 +66,17 @@ export default function PropertyDetailModal({ property, onClose }: Props) {
                 <strong>ประเภท:</strong> {property.propertyType ?? "-"}
               </p>
               <p>
-                <strong>ราคาประเมิน:</strong>{" "}
+                <strong>ราคาประเมิน:</strong>{' '}
                 {property.estimatedPrice != null
                   ? property.estimatedPrice.toLocaleString()
-                  : "-"}{" "}
+                  : "-"}{' '}
                 บาท
               </p>
               <p>
-                <strong>ราคาอนุมัติ:</strong>{" "}
+                <strong>ราคาอนุมัติ:</strong>{' '}
                 {property.approvedPrice != null
                   ? property.approvedPrice.toLocaleString()
-                  : "-"}{" "}
+                  : "-"}{' '}
                 บาท
               </p>
               <p>
@@ -87,7 +88,9 @@ export default function PropertyDetailModal({ property, onClose }: Props) {
           {/* Right: Map + Actions */}
           <div className="flex flex-col gap-6">
             <div className="rounded-2xl overflow-hidden shadow-md border border-white/10 bg-white/5 h-64 md:h-80 lg:h-96">
-              <MapEmbed input={property.mapEmbedLink ?? property.locationLink ?? ""} />
+              <MapEmbed
+                input={property.mapEmbedLink ?? property.locationLink ?? ""}
+              />
             </div>
             <div className="flex justify-center gap-3">
               <button className="px-6 py-2 rounded-full bg-white text-black text-sm font-semibold shadow">

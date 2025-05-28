@@ -8,7 +8,7 @@ type Props = {
 };
 
 export default function PropertyCard({ property, onClick }: Props) {
-  // Supabase Storage คืน URL เต็มมาให้แล้ว จึงใช้ตรงๆ
+  // เพราะ images: string[] แน่นอนแล้ว
   const imgSrc =
     property.images && property.images.length > 0
       ? property.images[0]
@@ -22,9 +22,11 @@ export default function PropertyCard({ property, onClick }: Props) {
       {/* Background Image */}
       <img
         src={imgSrc}
-        alt={property.province 
-          ? `ภาพทรัพย์ ${property.province}` 
-          : `ภาพทรัพย์ ${property.id}`}
+        alt={
+          property.province
+            ? `ภาพทรัพย์ ${property.province}`
+            : `ภาพทรัพย์ ${property.id}`
+        }
         className="object-cover w-full h-56"
       />
 
@@ -49,9 +51,7 @@ export default function PropertyCard({ property, onClick }: Props) {
             {property.province}
           </span>
         )}
-        <h3 className="text-lg font-bold text-white">
-          {property.id}
-        </h3>
+        <h3 className="text-lg font-bold text-white">{property.id}</h3>
       </div>
     </div>
   );

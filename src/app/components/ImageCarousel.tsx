@@ -1,7 +1,6 @@
 // src/components/ImageCarousel.tsx
 
 import { useState, useEffect, useRef } from "react";
-import Image from "next/image";
 
 type Props = {
   images: string[];           // full URLs from Supabase Storage
@@ -15,12 +14,10 @@ export default function ImageCarousel({
   autoPlayInterval = 5000,
 }: Props) {
   const [current, setCurrent] = useState(0);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const resetTimeout = () => {
-    if (timeoutRef.current !== null) {
-      clearTimeout(timeoutRef.current);
-    }
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
   useEffect(() => {
@@ -42,20 +39,15 @@ export default function ImageCarousel({
     <div className="relative w-full overflow-hidden rounded-2xl shadow-md border border-white/10 bg-white/5">
       {/* Slides */}
       <div
-        className="whitespace-nowrap transition-transform duration-500"
+        className="flex transition-transform duration-500"
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
         {images.map((src, idx) => (
-          <div
-            key={idx}
-            className="inline-block w-full h-64 md:h-80 lg:h-96 relative"
-          >
-            <Image
-              src={src}           // use full Supabase URL directly
+          <div key={idx} className="flex-shrink-0 w-full h-64 md:h-80 lg:h-96 relative">
+            <img
+              src={src}
               alt={`ภาพ ${idx + 1}`}
-              fill
-              className="object-cover"
-              unoptimized
+              className="object-cover w-full h-full"
             />
           </div>
         ))}

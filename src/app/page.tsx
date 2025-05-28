@@ -1,83 +1,92 @@
 // src/app/page.tsx
 'use client';
 
-import { useEffect, useState } from "react";
-import Logo from "@/app/components/Logo";
-import DashboardNavbar from "@/app/components/DashboardNavbar";
-import PropertyDetailModal from "@/app/components/PropertyDetailModal";
-import PropertyGrid from "@/app/components/DashboardGrid";
-import Link from "next/link";
-import { Property, PropertyDetail } from "@/app/types/property";
+import { useEffect, useState } from 'react';
+import Logo from '@/app/components/Logo';
+import DashboardNavbar from '@/app/components/DashboardNavbar';
+import PropertyDetailModal from '@/app/components/PropertyDetailModal';
+import PropertyGrid from '@/app/components/DashboardGrid';
+import Link from 'next/link';
+import { Property, PropertyDetail } from '@/app/types/property';
 
 export default function Home() {
+  // [1] ป้องกัน hydration error ด้วย isHydrated
+  const [isHydrated, setIsHydrated] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const [properties, setProperties] = useState<Property[]>([]);
-  const [searchId, setSearchId] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("ทั้งหมด");
+  const [searchId, setSearchId] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('ทั้งหมด');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
+  // [2] hydrate (client-side only)
   useEffect(() => {
-    fetch("/api/properties")
+    setIsHydrated(true);
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+      setLoggedIn(true);
+    }
+  }, []);
+
+  // [3] ดึงข้อมูลทรัพย์
+  useEffect(() => {
+    fetch('/api/properties')
       .then(async (res) => {
         const payload = await res.json();
-        if (!res.ok) {
-          throw new Error(payload.error || "โหลดข้อมูลไม่สำเร็จ");
-        }
-        if (!Array.isArray(payload)) {
-          throw new Error("ข้อมูลจากเซิร์ฟเวอร์ไม่ถูกต้อง");
-        }
+        if (!res.ok) throw new Error(payload.error || 'โหลดข้อมูลไม่สำเร็จ');
+        if (!Array.isArray(payload)) throw new Error('ข้อมูลไม่ถูกต้อง');
         return payload as Property[];
       })
-      .then((list) => setProperties(list))
+      .then(setProperties)
       .catch((err) => {
-        console.error("❌ Fetch failed:", err);
-        setProperties([]); // เซ็ตเป็น empty array เสมอ
+        console.error('❌ Fetch failed:', err);
+        setProperties([]);
       });
   }, []);
 
-  // กรองจาก array properties จริง ๆ
+  // [4] ฟังก์ชันกรองและแบ่งหน้า
   const filtered = properties.filter((item) => {
     const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
-    const matchStatus =
-      selectedStatus === "ทั้งหมด" || item.status === selectedStatus;
+    const matchStatus = selectedStatus === 'ทั้งหมด' || item.status === selectedStatus;
     const matchDate = selectedDate
       ? new Date(item.createdAt).toDateString() === selectedDate.toDateString()
       : true;
     return matchId && matchStatus && matchDate;
   });
-
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
-  const currentData = filtered.slice(
-    (page - 1) * itemsPerPage,
-    page * itemsPerPage
-  );
+  const currentData = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
   const handleDetailClick = (id: string) => {
     setSelectedId(id);
     setShowDetail(true);
   };
 
+  // [5] ฟังก์ชัน login
   const handleLogin = () => {
-    if (username === "" && password === "") {
+    if (username === '' && password === '') {
       setLoggedIn(true);
-      setError("");
+      localStorage.setItem('isLoggedIn', 'true');
+      setError('');
     } else {
-      setError("Username หรือ Password ไม่ถูกต้อง");
+      setError('Username หรือ Password ไม่ถูกต้อง');
     }
   };
 
+  // [6] SSR/CSR ให้ HTML ตรงกันระหว่าง server/client (แก้ hydration)
+  if (!isHydrated) return null;
+
+  // [7] ถ้ายังไม่ login ให้แสดงหน้ากรอก
   if (!loggedIn) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
-        <div className="w-full max-w-lg bg-white/20 backdrop-blur-2xl rounded-[2rem] p-8 text-white">
+        <div className="w-full max-w-lg bg-white/20 backdrop-blur-2xl rounded-2xl p-8 text-white">
           <div className="flex justify-center mb-6">
             <Logo className="h-24 w-auto" />
           </div>
@@ -113,6 +122,7 @@ export default function Home() {
     );
   }
 
+  // [8] หน้า Dashboard หลัก
   return (
     <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen p-10">
       <DashboardNavbar
@@ -128,16 +138,10 @@ export default function Home() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">รายการทรัพย์</h2>
           <div className="flex gap-2">
-            <Link
-              href="/add"
-              className="bg-white text-black px-4 py-2 rounded-full font-medium"
-            >
+            <Link href="/add" className="bg-white text-black px-4 py-2 rounded-full font-medium">
               + เพิ่มรายการ
             </Link>
-            <Link
-              href="/manage"
-              className="bg-blue-500 text-white px-4 py-2 rounded-full font-medium"
-            >
+            <Link href="/manage" className="bg-blue-500 text-white px-4 py-2 rounded-full font-medium">
               จัดการรายการ
             </Link>
           </div>
@@ -153,9 +157,7 @@ export default function Home() {
           >
             Previous
           </button>
-          <span>
-            Page {page} of {totalPages}
-          </span>
+          <span>Page {page} of {totalPages}</span>
           <button
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             disabled={page === totalPages}
