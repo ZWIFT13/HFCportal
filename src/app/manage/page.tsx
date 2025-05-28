@@ -98,7 +98,7 @@ export default function ManagePage() {
             <h1 className="text-3xl font-bold">จัดการรายการทรัพย์</h1>
             <Link
               href="/"
-              className="px-4 py-2 rounded-full bg-white/20 hover:bg-white/30 border border-white/30 text-white text-sm font-semibold shadow transition"
+              className="px-4 py-2 rounded-full bg-inherit hover:bg-white border border-white/30 hover:text-black text-white text-sm font-semibold shadow transition"
             >
               ← กลับหน้าหลัก
             </Link>
@@ -147,13 +147,13 @@ export default function ManagePage() {
                         <td className="px-4 py-3 align-middle">
                           <div className="flex justify-center gap-2">
                             <button
-                              className="px-4 py-1 rounded-full text-xs bg-yellow-400 hover:bg-yellow-300 text-black font-semibold transition"
+                              className="px-4 py-1 rounded-full text-xs border-yellow-400 border-1 hover:bg-yellow-300 text-yellow-300 hover:text-white font-semibold transition"
                               onClick={() => setEditing(p as PropertyDetail)}
                             >
                               แก้ไข
                             </button>
                             <button
-                              className="px-4 py-1 rounded-full text-xs bg-red-600 hover:bg-red-500 text-white font-semibold transition"
+                              className="px-4 py-1 rounded-full text-xs border-1 border-red-600 hover:bg-red-500 text-red-500 hover:text-white font-semibold transition"
                               onClick={() => handleDelete(p.id)}
                             >
                               ลบ

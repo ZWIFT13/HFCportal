@@ -7,9 +7,10 @@ import "react-datepicker/dist/react-datepicker.css";
 
 const statuses = [
   "ทั้งหมด",
+  "รอประเมิน",
+  "รอดูทรัพย์",
+  "รอประมูล",
   "รอทำธุรกรรม",
-  "กำลังประเมิน",
-  "นัดดู",
   "เสร็จแล้ว",
 ];
 

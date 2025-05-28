@@ -1,6 +1,7 @@
+// src/lib/supabaseAdmin.ts
 import { createClient } from '@supabase/supabase-js';
 
-// Admin client (server-side only)
+// ฝั่ง server (admin) ใช้ service role key
 const supabaseServiceUrl = process.env.SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 

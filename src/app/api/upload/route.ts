@@ -1,6 +1,6 @@
 // src/app/api/upload/route.ts
 import { NextResponse } from 'next/server';
-import { supabaseAdmin } from '@/lib/supabase';
+import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { randomUUID } from 'crypto';
 
 export const runtime = 'nodejs';

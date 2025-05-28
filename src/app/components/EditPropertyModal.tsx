@@ -1,7 +1,7 @@
 // src/components/EditPropertyModal.tsx
 'use client'
 
-import React, { useState } from 'react'
+import React, { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { PropertyDetail } from 'src/app/types/property'
 
@@ -24,25 +24,46 @@ const THAI_PROVINCES = [
   "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
 ];
 
+const PROP_OPTIONS = [
+  "บ้านเดี่ยว",
+  "บ้านโครงการ",
+  "บ้านแฝด",
+  "คอนโด",
+];
+const INVESTOR_OPTIONS = [
+  "นายทุน",
+  "ประมูล",
+  "อื่นๆ",
+];
+const TEAM_OPTIONS = [
+  "พี่นัท",
+  "พี่ฮอล",
+  "พี่ซันเดย์",
+  "พี่หมูแดง",
+  "พี่โอม",
+  "พี่ปุ๊กปิ๊ก",
+  "ทีมอื่นๆ",
+];
 const STATUS_OPTIONS = [
-  "รอประเมิน (IsNew)",
+  "รอประเมิน",
   "รอดูทรัพย์",
+  "รอประมูล",
   "รอทำธุรกรรม",
   "เสร็จแล้ว",
 ];
 
 type FormFields = {
   id: string;
+  propertyType: string;
   ownerName: string;
   ownerPhone: string;
-  propertyType: string;
-  agentName: string;
-  investor: string;
   estimatedPrice: string;
   approvedPrice: string;
+  province: string;
   locationLink: string;
   mapEmbedLink: string;
-  province: string;
+  investor: string;
+  agentName: string;
   status: string;
 };
 
@@ -55,20 +76,21 @@ export default function EditPropertyModal({ property, onClose }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<FormFields>({
     id: property.id,
-    ownerName: property.ownerName,
-    ownerPhone: property.ownerPhone,
     propertyType: property.propertyType ?? '',
-    agentName: property.agentName ?? '',
-    investor: property.investor ?? '',
+    ownerName: property.ownerName ?? '',
+    ownerPhone: property.ownerPhone ?? '',
     estimatedPrice: property.estimatedPrice != null ? String(property.estimatedPrice) : '',
     approvedPrice: property.approvedPrice != null ? String(property.approvedPrice) : '',
+    province: property.province ?? '',
     locationLink: property.locationLink ?? '',
     mapEmbedLink: property.mapEmbedLink ?? '',
-    province: property.province ?? '',
+    investor: property.investor ?? '',
+    agentName: property.agentName ?? '',
     status: property.status ?? '',
   });
   const [images, setImages] = useState<File[]>([]);
   const [previewPaths, setPreviewPaths] = useState<string[]>(property.images || []);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -78,18 +100,26 @@ export default function EditPropertyModal({ property, onClose }: Props) {
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setImages(Array.from(e.target.files || []));
-    setPreviewPaths([]);
+    const files = Array.from(e.target.files || []);
+    setImages(files);
+
+    // Show preview
+    const previews: string[] = [];
+    files.forEach(file => {
+      const url = URL.createObjectURL(file);
+      previews.push(url);
+    });
+    setPreviewPaths(previews);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       // 1. Upload images if new
-      const fd = new FormData();
-      images.forEach(file => fd.append('images', file));
       let paths = previewPaths;
       if (images.length > 0) {
+        const fd = new FormData();
+        images.forEach(file => fd.append('images', file));
         const uploadRes = await fetch('/api/upload', {
           method: 'POST',
           body: fd,
@@ -125,12 +155,6 @@ export default function EditPropertyModal({ property, onClose }: Props) {
     }
   };
 
-  const inputFields: Array<keyof FormFields> = [
-    'id','ownerName','ownerPhone','propertyType',
-    'agentName','investor','estimatedPrice','approvedPrice',
-    'locationLink','mapEmbedLink',
-  ];
-
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-3xl flex items-center justify-center p-6">
       <div className="relative w-full max-w-3xl overflow-y-auto rounded-2xl bg-white/10 p-8 text-white shadow-xl">
@@ -143,36 +167,146 @@ export default function EditPropertyModal({ property, onClose }: Props) {
 
         <h2 className="text-2xl font-bold mb-4">แก้ไขทรัพย์ {property.id}</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {inputFields.map((key) => (
-            <input
-              key={key}
-              name={key}
-              placeholder={key}
-              value={form[key]}
-              onChange={handleChange}
-              required={key === 'id' || key === 'ownerName'}
-              className="w-full px-4 py-3 bg-white/20 placeholder-white/60 rounded-xl border border-white/30 text-white"
-            />
-          ))}
+          {/* ID */}
+          <input
+            name="id"
+            placeholder="รหัสทรัพย์ (ID)"
+            value={form.id}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            disabled // ไม่ให้แก้ไขรหัส
+          />
 
+          {/* ประเภททรัพย์ */}
+          <select
+            name="propertyType"
+            value={form.propertyType}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            style={{ colorScheme: 'dark' }}
+          >
+            <option value="" disabled>เลือกประเภททรัพย์</option>
+            {PROP_OPTIONS.map((option) => (
+              <option key={option} value={option} className="text-black">
+                {option}
+              </option>
+            ))}
+          </select>
+
+          {/* ชื่อเจ้าของ */}
+          <input
+            name="ownerName"
+            placeholder="ชื่อเจ้าของ"
+            value={form.ownerName}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+          />
+
+          {/* เบอร์เจ้าของ */}
+          <input
+            name="ownerPhone"
+            placeholder="เบอร์เจ้าของ"
+            value={form.ownerPhone}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+          />
+
+          {/* ราคาประเมิน */}
+          <input
+            name="estimatedPrice"
+            placeholder="ราคาประเมิน (บาท)"
+            value={form.estimatedPrice}
+            onChange={handleChange}
+            type="number"
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+          />
+
+          {/* ราคาอนุมัติ */}
+          <input
+            name="approvedPrice"
+            placeholder="ราคาอนุมัติ (บาท)"
+            value={form.approvedPrice}
+            onChange={handleChange}
+            type="number"
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+          />
+
+          {/* จังหวัด */}
           <input
             name="province"
             list="province-options"
+            placeholder="เลือกจังหวัด"
             value={form.province}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 bg-white/20 rounded-xl border border-white/30 text-white"
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
           />
           <datalist id="province-options">
-            {THAI_PROVINCES.map((p) => <option key={p} value={p} />)}
+            {THAI_PROVINCES.map((prov) => (
+              <option key={prov} value={prov} />
+            ))}
           </datalist>
 
+          {/* location link */}
+          <input
+            name="locationLink"
+            placeholder="Google Maps Link (location link)"
+            value={form.locationLink}
+            onChange={handleChange}
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+          />
+
+          {/* map embed link */}
+          <input
+            name="mapEmbedLink"
+            placeholder="Google Maps Embed (map embed link) (ถ้ามี)"
+            value={form.mapEmbedLink}
+            onChange={handleChange}
+            className="w-full px-4 py-3 bg-white/20 text-white placeholder-white/60 rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+          />
+
+          {/* นายทุน/ประมูล */}
+          <select
+            name="investor"
+            value={form.investor}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            style={{ colorScheme: 'dark' }}
+          >
+            <option value="" disabled>เลือกนายทุน หรือประมูล</option>
+            {INVESTOR_OPTIONS.map(option => (
+              <option key={option} value={option} className="text-black">{option}</option>
+            ))}
+          </select>
+
+          {/* ทีมงาน */}
+          <select
+            name="agentName"
+            value={form.agentName}
+            onChange={handleChange}
+            required
+            className="w-full px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            style={{ colorScheme: 'dark' }}
+          >
+            <option value="" disabled>เลือกทีมงาน</option>
+            {TEAM_OPTIONS.map(option => (
+              <option key={option} value={option} className="text-black">{option}</option>
+            ))}
+          </select>
+
+          {/* สถานะ */}
           <select
             name="status"
             value={form.status}
             onChange={handleChange}
             required
-            className="w-full px-4 py-3 bg-white/20 rounded-xl border border-white/30 text-white"
+            className="w-full px-4 py-3 bg-white/20 text-white rounded-xl border border-white/30 focus:outline-none backdrop-blur-md"
+            style={{ colorScheme: 'dark' }}
           >
             <option value="" disabled>เลือกสถานะ</option>
             {STATUS_OPTIONS.map((s) => (
@@ -180,37 +314,48 @@ export default function EditPropertyModal({ property, onClose }: Props) {
             ))}
           </select>
 
-          <input
-            type="file"
-            multiple
-            accept="image/*"
-            onChange={handleFileChange}
-            className="w-full text-white"
-          />
-          {previewPaths.length > 0 && (
-            <div className="flex gap-3 overflow-x-auto">
-              {previewPaths.map((src, i) => (
-                <img
-                  key={i}
-                  src={src}
-                  alt={`preview-${i}`} 
-                  className="h-24 w-24 object-cover rounded-xl border border-white/30"
-                />
-              ))}
-            </div>
-          )}
+          {/* อัปโหลดรูป: ปุ่มใหญ่ดีไซน์สวย */}
+          <div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full py-4 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-semibold text-lg mb-2 transition flex items-center justify-center gap-2"
+            >
+              <span>📷</span> อัปโหลดรูปภาพ
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handleFileChange}
+              style={{ display: 'none' }}
+            />
+            {previewPaths.length > 0 && (
+              <div className="flex gap-3 overflow-x-auto mt-2">
+                {previewPaths.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt={`uploaded-${i}`}
+                    className="h-24 w-24 object-cover rounded-xl border border-white/30"
+                  />
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="flex gap-4 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 bg-red-500 rounded-xl text-white"
+              className="flex-1 py-3 bg-red-500 rounded-xl text-white font-semibold hover:bg-red-600 transition"
             >
               ยกเลิก
             </button>
             <button
               type="submit"
-              className="flex-1 py-3 bg-blue-500 rounded-xl text-white"
+              className="flex-1 py-3 bg-blue-500 rounded-xl text-white font-semibold hover:bg-blue-600 transition"
             >
               บันทึก
             </button>

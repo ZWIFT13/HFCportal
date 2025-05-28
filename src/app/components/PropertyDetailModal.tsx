@@ -1,9 +1,9 @@
-// src/components/PropertyDetailModal.tsx
-'use client';
-
+import { useState } from "react";
 import { PropertyDetail } from "src/app/types/property";
 import ImageCarousel from "./ImageCarousel";
 import MapEmbed from "./MapEmbed";
+import EditPropertyModal from "@/app/components/EditPropertyModal";
+import { motion } from "framer-motion";
 
 type Props = {
   property: PropertyDetail;
@@ -11,21 +11,56 @@ type Props = {
 };
 
 export default function PropertyDetailModal({ property, onClose }: Props) {
-  // Supabase Storage คืน full URLs มาแล้ว จึงใช้ตรงๆ
+  const [showEdit, setShowEdit] = useState(false);
+
   const resolvedImages: string[] =
-    property.images && property.images.length > 0
-      ? property.images
-      : [];
+    property.images && property.images.length > 0 ? property.images : [];
+
+  // Map URL: mapEmbedLink หรือ locationLink (fallback)
+  const mapUrl =
+    property.mapEmbedLink?.startsWith("http")
+      ? property.mapEmbedLink
+      : property.locationLink?.startsWith("http")
+      ? property.locationLink
+      : undefined;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-3xl flex items-center justify-center p-6">
       <div className="relative w-full max-w-6xl max-h-[95vh] overflow-y-auto rounded-[2rem] bg-white/10 backdrop-blur-3xl shadow-2xl border border-white/10 p-8 text-white">
-        {/* Close Button */}
+
+        {/* ปุ่มเปิดแมปในแท็บใหม่ (ขวาบน) */}
+        {mapUrl && (
+          <a
+            href={mapUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="absolute top-4 right-16 z-50 flex items-center gap-1 px-3 py-2 bg-white/20 hover:bg-white hover:text-black transition-all duration-150 text-blue-200 text-xs font-semibold rounded-full shadow-lg cursor-pointer group"
+            title="เปิดแผนที่ใน Google Maps"
+            tabIndex={0}
+          >
+            <span className="text-lg group-hover:scale-125 transition-transform duration-200">🗺️</span>
+            เปิดแมป
+          </a>
+        )}
+
+        {/* ปุ่มปิดใหม่ */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-50 px-4 py-2 bg-white/20 hover:bg-white/30 text-white text-sm font-semibold rounded-full shadow-lg focus:outline-none"
+          title="ปิดหน้าต่าง"
+          className="
+            absolute top-4 right-4 z-50 
+            flex items-center justify-center 
+            w-11 h-11 rounded-full 
+            bg-white/20 text-white 
+            hover:bg-white hover:text-black
+            transition-all duration-150
+            shadow-lg cursor-pointer group
+            
+            focus:outline-none
+          "
+          style={{ fontSize: "1.5rem" }}
         >
-          X
+          <span className="font-bold transition-all duration-200 group-hover:scale-125">×</span>
         </button>
 
         {/* Header */}
@@ -66,17 +101,17 @@ export default function PropertyDetailModal({ property, onClose }: Props) {
                 <strong>ประเภท:</strong> {property.propertyType ?? "-"}
               </p>
               <p>
-                <strong>ราคาประเมิน:</strong>{' '}
+                <strong>ราคาประเมิน:</strong>{" "}
                 {property.estimatedPrice != null
                   ? property.estimatedPrice.toLocaleString()
-                  : "-"}{' '}
+                  : "-"}{" "}
                 บาท
               </p>
               <p>
-                <strong>ราคาอนุมัติ:</strong>{' '}
+                <strong>ราคาอนุมัติ:</strong>{" "}
                 {property.approvedPrice != null
                   ? property.approvedPrice.toLocaleString()
-                  : "-"}{' '}
+                  : "-"}{" "}
                 บาท
               </p>
               <p>
@@ -93,19 +128,52 @@ export default function PropertyDetailModal({ property, onClose }: Props) {
               />
             </div>
             <div className="flex justify-center gap-3">
-              <button className="px-6 py-2 rounded-full bg-white text-black text-sm font-semibold shadow">
+              <button className="px-6 py-2 rounded-full bg-white text-black text-sm font-semibold shadow transition-all duration-200 hover:bg-blue-500 hover:text-white hover:scale-105 active:scale-95">
                 ACCEPT
               </button>
-              <button className="px-6 py-2 rounded-full bg-white/10 border border-white/30 text-white text-sm">
+              <button className="px-6 py-2 rounded-full bg-white/10 border border-white/30 text-white text-sm transition-all duration-200 hover:bg-red-500 hover:text-white hover:scale-105 active:scale-95">
                 CANCEL
               </button>
-              <button className="px-6 py-2 rounded-full bg-white/10 border border-white/30 text-white text-sm">
+              {/* ปุ่ม EDIT มี animation ตอน hover/click */}
+              <motion.button
+                whileHover={{
+                  backgroundColor: "#3B82F6", // blue-500
+                  color: "#fff",
+                  borderColor: "#2563EB", // blue-700
+                  scale: 1.06,
+                  transition: { duration: 0.13 },
+                }}
+                whileTap={{
+                  scale: 0.97,
+                  backgroundColor: "#1D4ED8", // blue-700
+                  color: "#fff",
+                  borderColor: "#1E40AF", // blue-900
+                  transition: { duration: 0.11 },
+                }}
+                className="px-6 py-2 rounded-full border border-blue-400 text-blue-300 text-sm font-semibold shadow focus:outline-none transition-all duration-200 cursor-pointer"
+                style={{
+                  backgroundColor: "rgba(59,130,246,0.10)",
+                  color: "#60A5FA",
+                  borderColor: "#60A5FA",
+                }}
+                onClick={() => setShowEdit(true)}
+                tabIndex={0}
+              >
                 EDIT
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
       </div>
+      {/* SHOW MODAL: ไม่มี animation */}
+      {showEdit && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md">
+          <EditPropertyModal
+            property={property}
+            onClose={() => setShowEdit(false)}
+          />
+        </div>
+      )}
     </div>
   );
 }

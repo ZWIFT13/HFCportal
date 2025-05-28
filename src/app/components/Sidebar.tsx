@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Logo from '@/app/components/Logo';
-import DashboardNavbar from '@/app/components/DashboardNavbar';
+import Sidebar from '@/app/components/Sidebar';
 import PropertyDetailModal from '@/app/components/PropertyDetailModal';
 import PropertyGrid from '@/app/components/DashboardGrid';
 import Link from 'next/link';
 import { Property, PropertyDetail } from '@/app/types/property';
 
 export default function Home() {
-  // [1] ป้องกัน hydration error ด้วย isHydrated
   const [isHydrated, setIsHydrated] = useState(false);
   const [loggedIn, setLoggedIn] = useState(false);
 
@@ -18,16 +17,20 @@ export default function Home() {
   const [error, setError] = useState('');
 
   const [properties, setProperties] = useState<Property[]>([]);
-  const [loading, setLoading] = useState(true); // <--- เพิ่ม loading
+  const [loading, setLoading] = useState(true);
   const [searchId, setSearchId] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('ทั้งหมด');
+  const [selectedStatus, setSelectedStatus] = useState<string>('');
+  const [selectedProp, setSelectedProp] = useState<string>('');
+  const [selectedTeam, setSelectedTeam] = useState<string>('');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [showDetail, setShowDetail] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const itemsPerPage = 20;
 
-  // [2] hydrate (client-side only)
+  // For navigation in Sidebar
+  const [activeMenu, setActiveMenu] = useState('home');
+
   useEffect(() => {
     setIsHydrated(true);
     if (localStorage.getItem('isLoggedIn') === 'true') {
@@ -35,9 +38,8 @@ export default function Home() {
     }
   }, []);
 
-  // [3] ดึงข้อมูลทรัพย์
   useEffect(() => {
-    setLoading(true); // <--- เพิ่ม
+    setLoading(true);
     fetch('/api/properties')
       .then(async (res) => {
         const payload = await res.json();
@@ -50,17 +52,18 @@ export default function Home() {
         console.error('❌ Fetch failed:', err);
         setProperties([]);
       })
-      .finally(() => setLoading(false)); // <--- เพิ่ม
+      .finally(() => setLoading(false));
   }, []);
 
-  // [4] ฟังก์ชันกรองและแบ่งหน้า
   const filtered = properties.filter((item) => {
     const matchId = item.id.toLowerCase().includes(searchId.toLowerCase());
-    const matchStatus = selectedStatus === 'ทั้งหมด' || item.status === selectedStatus;
+    const matchStatus = !selectedStatus || item.status === selectedStatus;
+    const matchProp = !selectedProp || item.propertyType === selectedProp;
+    const matchTeam = !selectedTeam || item.agentName === selectedTeam;
     const matchDate = selectedDate
       ? new Date(item.createdAt).toDateString() === selectedDate.toDateString()
       : true;
-    return matchId && matchStatus && matchDate;
+    return matchId && matchStatus && matchProp && matchTeam && matchDate;
   });
   const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
   const currentData = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
@@ -70,7 +73,6 @@ export default function Home() {
     setShowDetail(true);
   };
 
-  // [5] ฟังก์ชัน login
   const handleLogin = () => {
     if (username === '' && password === '') {
       setLoggedIn(true);
@@ -81,10 +83,15 @@ export default function Home() {
     }
   };
 
-  // [6] SSR/CSR ให้ HTML ตรงกันระหว่าง server/client (แก้ hydration)
+  // Handle sidebar navigation
+  const handleNavigate = (key: string) => {
+    setActiveMenu(key);
+    // สามารถเช็ค key แล้ว route หรือเปลี่ยนหน้าได้
+    // เช่น if (key === 'add') router.push('/add') ...
+  };
+
   if (!isHydrated) return null;
 
-  // [7] ถ้ายังไม่ login ให้แสดงหน้ากรอก
   if (!loggedIn) {
     return (
       <main className="min-h-screen bg-gradient-to-br from-slate-800 via-slate-900 to-black flex items-center justify-center p-6">
@@ -127,19 +134,13 @@ export default function Home() {
     );
   }
 
-  // [8] หน้า Dashboard หลัก
+  // Layout ใหม่: Sidebar (fixed) + Main content (flex-1)
   return (
-    <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen p-10">
-      <DashboardNavbar
-        searchId={searchId}
-        onSearchIdChange={setSearchId}
-        selectedStatus={selectedStatus}
-        onStatusChange={setSelectedStatus}
-        selectedDate={selectedDate}
-        onDateChange={setSelectedDate}
-      />
-
-      <main className="max-w-6xl mx-auto px-6 py-6">
+    <div className="bg-gradient-to-br from-slate-800 via-slate-900 to-black min-h-screen flex p-10">
+      {/* Sidebar */}
+      <Sidebar onNavigate={handleNavigate} activeKey={activeMenu} />
+      {/* Content */}
+      <main className="flex-1 max-w-6xl mx-auto px-6 py-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-bold text-white">รายการทรัพย์</h2>
           <div className="flex gap-2">
@@ -156,7 +157,7 @@ export default function Home() {
               href="/manage"
               className="bg-inherit text-white border-1 px-4 py-2 rounded-full font-medium
               transition-all duration-200 ease-out
-              hover:bg-white hover:text-black hover:border-white0 hover:shadow-xl hover:scale-105
+              hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:shadow-xl hover:scale-105
               active:scale-95 focus:ring-2 focus:ring-white"
             >
               จัดการรายการ
@@ -164,7 +165,9 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Skeleton Loading ตรงนี้ */}
+        {/* (คุณสามารถวาง filter เพิ่มใน main ตรงนี้ได้ ถ้าอยากมี search/filter) */}
+
+        {/* Skeleton Loading */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
@@ -182,9 +185,9 @@ export default function Home() {
           <button
             onClick={() => setPage((p) => Math.max(p - 1, 1))}
             disabled={page === 1}
-            className="px-4 py-2 rounded-3xl bg-white/20 disabled:opacity-100
+            className="px-4 py-2 rounded bg-white/20 disabled:opacity-50
             transition-all duration-200
-            hover:bg-white hover:text-black hover:shadow-xl hover:scale-105
+            hover:bg-blue-500 hover:text-white hover:shadow-xl hover:scale-105
             active:scale-95 focus:ring-2 focus:ring-blue-300"
           >
             Previous
@@ -193,9 +196,9 @@ export default function Home() {
           <button
             onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
             disabled={page === totalPages}
-            className="px-4 py-2 rounded-3xl bg-white/20 disabled:opacity-100
+            className="px-4 py-2 rounded bg-white/20 disabled:opacity-50
             transition-all duration-200
-            hover:bg-white hover:text-black hover:shadow-xl hover:scale-105
+            hover:bg-blue-500 hover:text-white hover:shadow-xl hover:scale-105
             active:scale-95 focus:ring-2 focus:ring-blue-300"
           >
             Next
